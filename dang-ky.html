@@ -129,19 +129,20 @@ h1{font-size:clamp(25px, 5vw, 34px); font-weight:800; line-height:1.25; text-wra
   stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
 }
 .o.sai-anh .tai{border-color:#C0392B; background:#FFF5F4; color:#A5312B}
-.xem{
-  display:flex; align-items:center; gap:12px; padding:10px;
-  border:1.5px solid var(--cam-vien); border-radius:12px; background:var(--trang);
+.ds-anh{display:grid; grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:10px}
+.anh-the{position:relative; border-radius:11px; overflow:hidden; border:1.5px solid var(--cam-vien); background:var(--cam-nhat)}
+.anh-the img{display:block; width:100%; aspect-ratio:1 / 1; object-fit:cover}
+.anh-the .kb{
+  position:absolute; left:0; right:0; bottom:0; padding:4px 7px;
+  font-size:11.5px; font-weight:600; color:#fff; background:rgba(0,0,0,.52);
 }
-.xem img{width:62px; height:62px; flex:0 0 62px; object-fit:cover; border-radius:9px; background:var(--cam-nhat2)}
-.xem-tt{flex:1; min-width:0}
-.xem-tt b{display:block; font-size:14px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.xem-tt span{display:block; margin-top:2px; font-size:13px; color:var(--ink-3)}
 .bo-anh{
-  flex:0 0 auto; border:0; background:transparent; cursor:pointer; padding:8px 10px;
-  border-radius:9px; font-family:inherit; font-size:13.5px; font-weight:700; color:#A5312B;
+  position:absolute; top:5px; right:5px; width:26px; height:26px; display:grid; place-items:center;
+  border:0; border-radius:50%; cursor:pointer; background:rgba(17,17,17,.62); color:#fff;
+  font-family:inherit; font-size:15px; line-height:1; padding:0;
 }
-.bo-anh:hover{background:#FFF0EE}
+.bo-anh:hover{background:#A5312B}
+.so-anh{font-size:13.5px; color:var(--ink-3)}
 
 .loi{
   margin-top:6px; padding:14px 17px; border-radius:12px; font-size:15px; font-weight:600;
@@ -201,9 +202,11 @@ h1{font-size:clamp(25px, 5vw, 34px); font-weight:800; line-height:1.25; text-wra
   .dau img{height:50px}
   .chan .bo{flex-direction:column; gap:8px}
 }
-/* chan cuoi: khong the nao co thu gi rong hon man hinh */
+/* chặn cuối: không thứ gì được rộng hơn màn hình.
+   Chỉ áp cho nội dung bên trong, không đụng tới .bo và .form
+   vì hai cái đó đang giữ bề ngang tối đa của trang trên máy tính. */
 img,svg,video,table,pre,iframe{max-width:100%}
-.form,.bo,.nhom,.hang,.o,.xem,.tai,.loi{max-width:100%}
+.nhom,.hang,.o,.xem,.tai,.loi{max-width:100%}
 </style>
 </head>
 <body>
@@ -230,7 +233,7 @@ img,svg,video,table,pre,iframe{max-width:100%}
 
     <!-- 1 · người đề xuất -->
     <div class="nhom">
-      <div class="nhom-tieu"><span class="nhom-so">1</span><h2>Người đề xuất</h2></div>
+      <div class="nhom-tieu"><span class="nhom-so">1</span><h2>Thông tin chuyên gia</h2></div>
       <div class="hang">
         <label class="o">
           <span class="nhan-o">Họ và tên <i>*</i></span>
@@ -253,15 +256,24 @@ img,svg,video,table,pre,iframe{max-width:100%}
           <input type="text" id="a4" placeholder="Cục Cảnh sát quản lý hành chính về trật tự xã hội" required>
         </label>
         <label class="o rong">
-          <span class="nhan-o">Địa chỉ hiện tại <i>*</i></span>
+          <span class="nhan-o">Địa chỉ hiện tại, địa chỉ mới <i>*</i></span>
           <input type="text" id="a6" placeholder="Thôn/xóm, xã/phường, tỉnh/thành phố" required>
         </label>
+        <div class="o rong" data-anh="d7">
+          <span class="nhan-o">Ảnh căn cước công dân của chuyên gia, chuyên viên, đủ 2 mặt <i>*</i></span>
+          <input type="file" id="d7" accept="image/*" multiple class="an-file">
+          <label class="tai" for="d7">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>
+            <span>Chọn ảnh, chọn được nhiều tấm</span>
+          </label>
+          <div class="ds-anh" hidden></div>
+        </div>
       </div>
     </div>
 
     <!-- 2 · em nhỏ -->
     <div class="nhom">
-      <div class="nhom-tieu"><span class="nhom-so">2</span><h2>Em nhỏ được đề xuất</h2></div>
+      <div class="nhom-tieu"><span class="nhom-so">2</span><h2>Thông tin của bé</h2></div>
       <div class="hang">
         <label class="o rong">
           <span class="nhan-o">Họ và tên bé <i>*</i></span>
@@ -304,7 +316,8 @@ img,svg,video,table,pre,iframe{max-width:100%}
 
     <!-- 3 · bố hoặc mẹ -->
     <div class="nhom">
-      <div class="nhom-tieu"><span class="nhom-so">3</span><h2>Bố hoặc mẹ của bé</h2></div>
+      <div class="nhom-tieu"><span class="nhom-so">3</span><h2>Thông tin gia đình</h2></div>
+      <p class="luu-y-nhom">Nếu chọn đại diện là bố hoặc mẹ thì điền đầy đủ thông tin của người đó.</p>
       <div class="hang">
         <label class="o">
           <span class="nhan-o">Họ tên bố hoặc mẹ <i>*</i></span>
@@ -334,6 +347,27 @@ img,svg,video,table,pre,iframe{max-width:100%}
           <span class="nhan-o">Địa chỉ của gia đình <i>*</i></span>
           <input type="text" id="c7" placeholder="Thôn/xóm, xã/phường, tỉnh/thành phố" required>
         </label>
+        <label class="o">
+          <span class="nhan-o">Nghề nghiệp <i>*</i></span>
+          <input type="text" id="c9" maxlength="80" placeholder="Làm ruộng, phụ hồ, buôn bán nhỏ..." required>
+        </label>
+        <label class="o">
+          <span class="nhan-o">Thu nhập mỗi tháng <i>*</i></span>
+          <input type="text" id="c10" inputmode="numeric" placeholder="Nhập số tiền, đơn vị đồng" required>
+        </label>
+        <label class="o">
+          <span class="nhan-o">Mức độ ổn định của thu nhập <i>*</i></span>
+          <select id="c11" required>
+            <option value="">Chọn mức độ</option>
+            <option>Ổn định</option>
+            <option>Bấp bênh theo mùa vụ</option>
+            <option>Không có thu nhập đều</option>
+          </select>
+        </label>
+        <label class="o">
+          <span class="nhan-o">Số nhân khẩu trong gia đình <i>*</i></span>
+          <input type="number" id="c12" min="1" max="30" step="1" placeholder="5" required>
+        </label>
         <label class="o rong">
           <span class="nhan-o">Hoàn cảnh gia đình <i>*</i></span>
           <textarea id="c8" rows="5" required placeholder="Hộ nghèo, hộ cận nghèo hoặc mô tả hoàn cảnh: bé đang sống cùng ai, sức khỏe và công việc của người nuôi dưỡng, điều kiện ăn ở, và những gì khiến bé chững lại về thể chất."></textarea>
@@ -341,70 +375,107 @@ img,svg,video,table,pre,iframe{max-width:100%}
       </div>
     </div>
 
-    <!-- 4 · hình ảnh -->
+    <!-- 4 · tình trạng khó khăn -->
     <div class="nhom">
-      <div class="nhom-tieu"><span class="nhom-so">4</span><h2>Hình ảnh kèm theo</h2></div>
-      <p class="anh-dan">Bạn chụp bằng điện thoại rồi chọn ảnh lên thẳng đây, mỗi ô một ảnh. Ảnh được thu nhỏ tự động trước khi gửi nên không cần lo nặng máy hay mạng yếu.</p>
+      <div class="nhom-tieu"><span class="nhom-so">4</span><h2>Tình trạng khó khăn</h2></div>
+      <div class="hang">
+        <label class="o">
+          <span class="nhan-o">Hộ nghèo/cận nghèo <i>*</i></span>
+          <select id="e1" required>
+            <option value="">Chọn</option>
+            <option>Hộ nghèo</option>
+            <option>Hộ cận nghèo</option>
+            <option>Không thuộc diện nào</option>
+          </select>
+        </label>
+        <label class="o">
+          <span class="nhan-o">Điều kiện nhà ở <i>*</i></span>
+          <select id="e5" required>
+            <option value="">Chọn tình trạng nhà</option>
+            <option>Nhà kiên cố</option>
+            <option>Nhà cấp 4</option>
+            <option>Nhà tạm, dột nát</option>
+            <option>Ở nhờ hoặc thuê trọ</option>
+          </select>
+        </label>
+        <label class="o">
+          <span class="nhan-o">Bố mẹ đơn thân, hoặc bé không nơi nương tựa <i>*</i></span>
+          <select id="e3" required>
+            <option value="">Chọn</option>
+            <option>Có</option>
+            <option>Không</option>
+          </select>
+        </label>
+        <label class="o">
+          <span class="nhan-o">Không có việc làm, đang nhận trợ cấp <i>*</i></span>
+          <select id="e4" required>
+            <option value="">Chọn</option>
+            <option>Có</option>
+            <option>Không</option>
+          </select>
+        </label>
+        <label class="o rong">
+          <span class="nhan-o">Bệnh tật trong gia đình</span>
+          <textarea id="e2" rows="3" placeholder="Ghi rõ ai trong nhà đang mắc bệnh gì, kể cả bé và người nuôi dưỡng. Để trống nếu cả nhà không ai có bệnh."></textarea>
+        </label>
+      </div>
+    </div>
 
+    <!-- 5 · hình ảnh -->
+    <div class="nhom">
+      <div class="nhom-tieu"><span class="nhom-so">5</span><h2>Hình ảnh kèm theo</h2></div>
       <div class="hang">
         <div class="o rong" data-anh="d1">
-          <span class="nhan-o">Hình ảnh của bé chụp cùng chuyên gia tại gia đình bé <i>*</i></span>
-          <input type="file" id="d1" accept="image/*" class="an-file">
+          <span class="nhan-o">Hình ảnh của bé chụp cùng chuyên gia tại gia đình bé</span>
+          <input type="file" id="d1" accept="image/*" multiple class="an-file">
           <label class="tai" for="d1">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>
-            <span>Chọn ảnh</span>
+            <span>Chọn ảnh, chọn được nhiều tấm</span>
           </label>
-          <div class="xem" hidden><img alt=""><div class="xem-tt"><b></b><span></span></div><button type="button" class="bo-anh">Bỏ ảnh</button></div>
+          <div class="ds-anh" hidden></div>
         </div>
 
         <div class="o rong" data-anh="d2">
           <span class="nhan-o">Ảnh căn cước công dân của bố hoặc mẹ, đủ 2 mặt <i>*</i></span>
-          <input type="file" id="d2" accept="image/*" class="an-file">
+          <input type="file" id="d2" accept="image/*" multiple class="an-file">
           <label class="tai" for="d2">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>
-            <span>Chọn ảnh</span>
+            <span>Chọn ảnh, chọn được nhiều tấm</span>
           </label>
-          <div class="xem" hidden><img alt=""><div class="xem-tt"><b></b><span></span></div><button type="button" class="bo-anh">Bỏ ảnh</button></div>
+          <div class="ds-anh" hidden></div>
         </div>
 
         <div class="o rong" data-anh="d3">
           <span class="nhan-o">Ảnh căn cước công dân của bé, đủ 2 mặt</span>
-          <input type="file" id="d3" accept="image/*" class="an-file">
+          <input type="file" id="d3" accept="image/*" multiple class="an-file">
           <label class="tai" for="d3">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>
             <span>Chọn ảnh, để trống nếu bé chưa có căn cước</span>
           </label>
-          <div class="xem" hidden><img alt=""><div class="xem-tt"><b></b><span></span></div><button type="button" class="bo-anh">Bỏ ảnh</button></div>
+          <div class="ds-anh" hidden></div>
         </div>
 
-        <div class="o" data-anh="d4">
-          <span class="nhan-o">Ảnh sổ hộ nghèo hoặc cận nghèo</span>
-          <input type="file" id="d4" accept="image/*" class="an-file">
+        <div class="o rong" data-anh="d4">
+          <span class="nhan-o">Hình ảnh sổ hộ nghèo hoặc cận nghèo</span>
+          <input type="file" id="d4" accept="image/*" multiple class="an-file">
           <label class="tai" for="d4">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>
-            <span>Chọn ảnh</span>
+            <span>Chọn ảnh, chọn được nhiều tấm</span>
           </label>
-          <div class="xem" hidden><img alt=""><div class="xem-tt"><b></b><span></span></div><button type="button" class="bo-anh">Bỏ ảnh</button></div>
+          <div class="ds-anh" hidden></div>
         </div>
 
-        <div class="o" data-anh="d5">
-          <span class="nhan-o">Ảnh sổ hộ nghèo, trang tiếp theo</span>
-          <input type="file" id="d5" accept="image/*" class="an-file">
-          <label class="tai" for="d5">
-            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>
-            <span>Chọn ảnh</span>
-          </label>
-          <div class="xem" hidden><img alt=""><div class="xem-tt"><b></b><span></span></div><button type="button" class="bo-anh">Bỏ ảnh</button></div>
+        
         </div>
 
         <div class="o rong" data-anh="d6">
-          <span class="nhan-o">Hình ảnh chụp nhà, có bố hoặc mẹ chụp cùng <i>*</i></span>
-          <input type="file" id="d6" accept="image/*" class="an-file">
+          <span class="nhan-o">Hình ảnh chụp nhà có bố hoặc mẹ chụp cùng <i>*</i></span>
+          <input type="file" id="d6" accept="image/*" multiple class="an-file">
           <label class="tai" for="d6">
             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>
-            <span>Chọn ảnh</span>
+            <span>Chọn ảnh, chọn được nhiều tấm</span>
           </label>
-          <div class="xem" hidden><img alt=""><div class="xem-tt"><b></b><span></span></div><button type="button" class="bo-anh">Bỏ ảnh</button></div>
+          <div class="ds-anh" hidden></div>
         </div>
       </div>
     </div>
@@ -492,6 +563,7 @@ var API = "https://script.google.com/macros/s/AKfycbw1Xw9mFGhyQ5y6r8KHes2bi3Aunt
   ["a1","b1","c1"].forEach(function(id){ chiChu(g(id)); });
   ["a5","c6"].forEach(function(id){ chiSo(g(id), 11); });
   ["a2","b4","c3"].forEach(function(id){ chiSo(g(id), 12); });
+  chiSo(g("c10"), 12);   // thu nhập mỗi tháng, chỉ nhận số
 
   form.addEventListener("input", xoaLoi);
 
@@ -530,42 +602,89 @@ var API = "https://script.google.com/macros/s/AKfycbw1Xw9mFGhyQ5y6r8KHes2bi3Aunt
     fr.readAsDataURL(tep);
   }
 
+  var TOI_DA_ANH = 5;
+
   Array.prototype.forEach.call(document.querySelectorAll("[data-anh]"), function(o){
     var ma     = o.getAttribute("data-anh");
     var inp    = o.querySelector("input[type=file]");
     var nutTai = o.querySelector(".tai");
     var nhan   = nutTai.querySelector("span");
     var chuGoc = nhan.textContent;
-    var xem    = o.querySelector(".xem");
+    var khung  = o.querySelector(".ds-anh");
 
-    function boAnh(){
-      delete anh[ma];
-      inp.value = "";
-      xem.hidden = true;
-      nutTai.hidden = false;
-      nhan.textContent = chuGoc;
+    anh[ma] = [];
+
+    function veLai(){
+      var ds = anh[ma];
+      khung.textContent = "";
+
+      ds.forEach(function(a, i){
+        var the = document.createElement("div");
+        the.className = "anh-the";
+
+        var im = document.createElement("img");
+        im.src = a.xem;
+        im.alt = "Ảnh đã chọn, tấm thứ " + (i + 1);
+
+        var kb = document.createElement("span");
+        kb.className = "kb";
+        kb.textContent = doNang(a.kb);
+
+        var nut = document.createElement("button");
+        nut.type = "button";
+        nut.className = "bo-anh";
+        nut.title = "Bỏ ảnh này";
+        nut.setAttribute("aria-label", "Bỏ ảnh thứ " + (i + 1));
+        nut.textContent = "×";
+        nut.addEventListener("click", function(){
+          anh[ma].splice(i, 1);
+          veLai();
+        });
+
+        the.appendChild(im);
+        the.appendChild(kb);
+        the.appendChild(nut);
+        khung.appendChild(the);
+      });
+
+      khung.hidden = ds.length === 0;
+      nutTai.hidden = ds.length >= TOI_DA_ANH;
+      nhan.textContent = ds.length === 0
+        ? chuGoc
+        : "Thêm ảnh, đã chọn " + ds.length + " trên " + TOI_DA_ANH;
     }
 
     inp.addEventListener("change", function(){
-      var tep = inp.files && inp.files[0];
-      if (!tep) return boAnh();
+      var tep = Array.prototype.slice.call(inp.files || []);
+      inp.value = "";
+      if (!tep.length) return;
+
+      var conChoDuoc = TOI_DA_ANH - anh[ma].length;
+      if (conChoDuoc <= 0) return baoLoi("Mỗi mục chỉ nhận tối đa " + TOI_DA_ANH + " ảnh.");
+
+      var qua = tep.length > conChoDuoc;
+      tep = tep.slice(0, conChoDuoc);
+
       o.classList.remove("sai-anh");
       xoaLoi();
       nhan.textContent = "Đang xử lý ảnh...";
-      nenAnh(tep, function(kq){
-        anh[ma] = kq;
-        xem.querySelector("img").src = kq.xem;
-        xem.querySelector("b").textContent = tep.name;
-        xem.querySelector("span").textContent = doNang(kq.kb) + " sau khi thu nhỏ";
-        xem.hidden = false;
-        nutTai.hidden = true;
-      }, function(loi){
-        boAnh();
-        baoLoi(loi);
+
+      var con = tep.length;
+      tep.forEach(function(t){
+        nenAnh(t, function(kq){
+          anh[ma].push(kq);
+          if (--con === 0){
+            veLai();
+            if (qua) baoLoi("Mỗi mục chỉ nhận tối đa " + TOI_DA_ANH + " ảnh, những tấm thừa đã được bỏ qua.");
+          }
+        }, function(loi){
+          if (--con === 0) veLai();
+          baoLoi(loi);
+        });
       });
     });
 
-    o.querySelector(".bo-anh").addEventListener("click", boAnh);
+    veLai();
   });
 
   function loiAnh(ma, chu){
@@ -582,7 +701,8 @@ var API = "https://script.google.com/macros/s/AKfycbw1Xw9mFGhyQ5y6r8KHes2bi3Aunt
     var d = {};
     ["a1","a2","a3","a4","a5","a6",
      "b1","b2","b3","b4","b5","b6","b7","b8",
-     "c1","c2","c3","c4","c5","c6","c7","c8"].forEach(function(id){ d[id] = g(id).value.trim(); });
+     "c1","c2","c3","c4","c5","c6","c7","c8","c9","c10","c11","c12",
+     "e1","e2","e3","e4","e5"].forEach(function(id){ d[id] = g(id).value.trim(); });
 
     d.a5 = soThoi(d.a5); d.c6 = soThoi(d.c6);
     d.a2 = soThoi(d.a2); d.b4 = soThoi(d.b4); d.c3 = soThoi(d.c3);
@@ -608,14 +728,25 @@ var API = "https://script.google.com/macros/s/AKfycbw1Xw9mFGhyQ5y6r8KHes2bi3Aunt
     if (d.c5.length < 5)             return baoLoi("Bạn điền giúp nơi cấp căn cước của bố hoặc mẹ.", g("c5"));
     if (!/^0\d{8,10}$/.test(d.c6))   return baoLoi("Số điện thoại bố hoặc mẹ chưa đúng.", g("c6"));
     if (d.c7.length < 8)             return baoLoi("Bạn điền giúp địa chỉ của gia đình.", g("c7"));
+    if (d.c9.length < 2)             return baoLoi("Bạn điền giúp nghề nghiệp của bố hoặc mẹ.", g("c9"));
+    if (!soThoi(d.c10))              return baoLoi("Bạn điền giúp thu nhập mỗi tháng, chỉ cần nhập số.", g("c10"));
+    if (!d.c11)                      return baoLoi("Bạn chọn giúp mức độ ổn định của thu nhập.", g("c11"));
+    if (!d.c12)                      return baoLoi("Bạn điền giúp số nhân khẩu trong gia đình.", g("c12"));
     if (d.c8.length < 40)            return baoLoi("Phần hoàn cảnh gia đình còn ngắn quá. Bạn kể thêm giúp, đây là phần Ban Tổ chức đọc kỹ nhất.", g("c8"));
 
-    if (!anh.d1)                     return loiAnh("d1", "Bạn chọn giúp ảnh của bé chụp cùng chuyên gia.");
-    if (!anh.d2)                     return loiAnh("d2", "Bạn chọn giúp ảnh căn cước của bố hoặc mẹ, đủ 2 mặt.");
-    if (!anh.d6)                     return loiAnh("d6", "Bạn chọn giúp ảnh chụp nhà, có bố hoặc mẹ chụp cùng.");
+    if (!d.e1)                       return baoLoi("Bạn chọn giúp mục hộ nghèo hoặc cận nghèo.", g("e1"));
+    if (!d.e5)                       return baoLoi("Bạn chọn giúp điều kiện nhà ở.", g("e5"));
+    if (!d.e3)                       return baoLoi("Bạn chọn giúp mục bố mẹ đơn thân hoặc bé không nơi nương tựa.", g("e3"));
+    if (!d.e4)                       return baoLoi("Bạn chọn giúp mục không có việc làm, đang nhận trợ cấp.", g("e4"));
 
-    ["d1","d2","d3","d4","d5","d6"].forEach(function(k){
-      d[k] = anh[k] ? { ten: anh[k].ten, mime: anh[k].mime, data: anh[k].data } : "";
+    if (!anh.d7.length)              return loiAnh("d7", "Bạn chọn giúp ảnh căn cước của chính bạn, đủ hai mặt.");
+    if (!anh.d2.length)              return loiAnh("d2", "Bạn chọn giúp ảnh căn cước của bố hoặc mẹ, đủ 2 mặt.");
+    if (!anh.d6.length)              return loiAnh("d6", "Bạn chọn giúp ảnh chụp nhà, có bố hoặc mẹ chụp cùng.");
+
+    ["d1","d2","d3","d4","d6","d7"].forEach(function(k){
+      d[k] = (anh[k] || []).map(function(a){
+        return { ten: a.ten, mime: a.mime, data: a.data };
+      });
     });
 
     if (API.indexOf("DAN_LINK") === 0)
