@@ -33,10 +33,11 @@
     0 28px 46px rgba(138,63,17,.07);
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%; scroll-behavior:smooth}
+html{-webkit-text-size-adjust:100%; scroll-behavior:smooth; overflow-x:clip}
 @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{transition:none !important} }
 body{
-  margin:0; background:var(--vang-nhat); color:var(--ink);
+  margin:0; max-width:100%; overflow-x:clip;
+  background:var(--vang-nhat); color:var(--ink);
   font-family:"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size:17px; line-height:1.7;
 }
@@ -92,14 +93,16 @@ h1{font-size:clamp(25px, 5vw, 34px); font-weight:800; line-height:1.25; text-wra
   display:grid; place-items:center; font-family:Montserrat, sans-serif; font-weight:800; font-size:15px;
 }
 .nhom-tieu h2{font-size:18px; font-weight:800}
-.hang{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
-.o{display:flex; flex-direction:column; gap:7px}
+/* minmax(0,1fr) để ô nhập co được, không thì lưới phình ra làm trang trượt ngang */
+.hang{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px}
+.o{display:flex; flex-direction:column; gap:7px; min-width:0}
 .o.rong{grid-column:1 / -1}
 .o .nhan-o{font-size:14.5px; font-weight:600; color:var(--ink)}
 .o .nhan-o i{color:var(--cam); font-style:normal}
 .o input,.o select,.o textarea{
   font-family:inherit; font-size:16px; color:var(--ink); background:var(--trang);
-  border:1.5px solid var(--cam-vien); border-radius:12px; padding:13px 15px; width:100%;
+  border:1.5px solid var(--cam-vien); border-radius:12px; padding:13px 15px;
+  width:100%; min-width:0; max-width:100%;
   transition:border-color .15s ease, box-shadow .15s ease;
 }
 .o textarea{resize:vertical; line-height:1.6; min-height:110px}
@@ -191,13 +194,16 @@ h1{font-size:clamp(25px, 5vw, 34px); font-weight:800; line-height:1.25; text-wra
   body{font-size:16.5px}
   .mo{padding-top:34px}
   .form{padding:24px 20px 22px}
-  .hang{grid-template-columns:1fr; gap:14px}
+  .hang{grid-template-columns:minmax(0,1fr); gap:14px}
   .nut-gui{width:100%; justify-content:center; padding-inline:20px}
   .ve-lai span{display:none}
   .dau .bo{height:76px}
   .dau img{height:50px}
   .chan .bo{flex-direction:column; gap:8px}
 }
+/* chan cuoi: khong the nao co thu gi rong hon man hinh */
+img,svg,video,table,pre,iframe{max-width:100%}
+.form,.bo,.nhom,.hang,.o,.xem,.tai,.loi{max-width:100%}
 </style>
 </head>
 <body>
