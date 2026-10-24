@@ -176,6 +176,28 @@
   .chu-giai{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:4px;font-size:13px;color:var(--ink-3)}
   .chu-giai i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 
+  /* bản đồ */
+  .bd-khung{background:linear-gradient(180deg,#F4FAFB 0%,var(--cam-nhat) 100%);
+    border:1px solid var(--cam-vien);border-radius:26px;box-shadow:var(--bong);
+    padding:16px 12px 10px;margin:24px 0 14px;overflow:hidden}
+  .bd-khung svg{display:block;width:100%;height:auto}
+  .tinh{fill:#FBEFE4;stroke:#FFFFFF;stroke-width:1.1}
+  .tinh.co-be{fill:#F0A463;stroke:#FFFFFF;stroke-width:1.4;cursor:pointer}
+  .tinh.co-be:hover{fill:#DE7127}
+  .dao-vien{fill:none;stroke:#C99A6E;stroke-width:2.4;stroke-dasharray:11 9;opacity:.85}
+  .dao-chu{font-family:var(--dis);font-size:17px;font-weight:800;fill:var(--cam-sau);letter-spacing:.04em}
+  .dao-phu{font-family:var(--sans);font-size:14px;fill:var(--ink-4)}
+  .nhan-tinh{cursor:pointer}
+  .nhan-tinh .ten{font-family:var(--dis);font-size:19px;font-weight:800;fill:var(--cam-toi)}
+  .nhan-tinh .dem{font-family:var(--sans);font-size:15px;font-weight:600;fill:var(--cam-dam)}
+  .nhan-tinh:hover .ten{fill:var(--cam)}
+  .bd-giai{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;font-size:13.5px;color:var(--ink-3);margin-bottom:6px}
+  .bd-giai i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:7px;vertical-align:-2px}
+  .o-tinh{background:var(--trang);border:1px solid var(--vien);border-left:5px solid var(--cam);
+    border-radius:var(--r);box-shadow:var(--bong);padding:18px 20px;margin-bottom:14px}
+  .o-tinh h3{font-family:var(--dis);font-size:20px;color:var(--cam-toi);margin:0}
+  .o-tinh .noi{font-size:13.5px;color:var(--ink-4);margin-top:2px}
+
   /* trang chuyên viên */
   .nguoi{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
   .nguoi .vong{width:68px;height:68px;border-radius:50%;background:var(--vang-nhat);border:2px solid var(--vang-vien);
@@ -562,7 +584,116 @@ async function veCay(SB){
     '<section class="cuoi" style="margin-top:22px"><div class="nhan">Chương trình Kéo và Đẩy</div>'+
     '<p style="margin-top:9px">Cây mọc thêm một cành mỗi lần chương trình đi một tỉnh mới, và thêm một quả mỗi lần nhận đồng hành một em nhỏ. '+
     'Chương trình đi cùng con tính bằng năm, cho tới khi con đạt chuẩn.</p>'+
-    '<a class="nut" href="/dang-ky.html">Giới thiệu một em nhỏ</a></section>';
+    '<a class="nut" href="/dang-ky.html">Giới thiệu một em nhỏ</a>'+
+    '<a class="nut" href="/ban-do" style="background:var(--trang);color:var(--cam-dam);border:1px solid var(--cam-vien);margin-left:9px">Xem trên bản đồ Việt Nam</a></section>';
+}
+
+/* ======================= TRANG BẢN ĐỒ ======================= */
+async function veBanDo(SB){
+  document.title = "Các em nhỏ trên bản đồ Việt Nam · Kéo và Đẩy";
+  datTenDau("Trên bản đồ Việt Nam");
+
+  var t = await Promise.all([
+    SB.from("dot").select("*").order("thu_tu"),
+    SB.from("ca").select("id,ten,slug,dot,dia_ban,tuoi,cong_khai").eq("cong_khai", true).order("id"),
+    fetch("/ban-do-vn.json").then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+  ]);
+  var dot = t[0].data || [], ca = t[1].data || [], bd = t[2];
+  if (!bd) { khongThay("Chưa tải được bản đồ", "Kiểm tra kết nối mạng rồi tải lại trang."); return; }
+  if (!ca.length) { khongThay("Chưa có em nhỏ nào được công bố", "Chương trình chưa công bố trường hợp nào."); return; }
+
+  /* tỉnh của mỗi đợt: lấy phần sau dấu chấm giữa trong tên đợt */
+  var theoTinh = {};
+  dot.forEach(function(d){
+    var ten = String(d.ten).split(/\s*·\s*/).pop().trim();
+    var be = ca.filter(function(c){ return c.dot === d.ma; });
+    if (!be.length) return;
+    if (!theoTinh[ten]) theoTinh[ten] = { ten:ten, be:[], dot:[] };
+    theoTinh[ten].be = theoTinh[ten].be.concat(be);
+    theoTinh[ten].dot.push(d);
+  });
+  var dsTinh = Object.keys(theoTinh);
+
+  var svg = '<svg viewBox="0 0 '+bd.w+' '+bd.h+'" role="img" aria-label="Bản đồ Việt Nam, đánh dấu các tỉnh có em nhỏ được chương trình đồng hành">';
+
+  /* các tỉnh */
+  Object.keys(bd.tinh).forEach(function(ten){
+    var co = dsTinh.indexOf(ten) >= 0;
+    svg += '<path id="tinh-'+khongDau(ten)+'" class="tinh'+(co ? " co-be" : "")+'" d="'+bd.tinh[ten]+'"'+
+           (co ? ' onclick="document.getElementById(\'ds-'+khongDau(ten)+'\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" role="link" tabindex="0"' : '')+
+           '><title>'+esc(ten)+(co ? " · " + theoTinh[ten].be.length + " em nhỏ" : "")+'</title></path>';
+  });
+
+  /* hai quần đảo */
+  var nhanDao = {
+    "hoang-sa": ["QUẦN ĐẢO HOÀNG SA", "thành phố Đà Nẵng"],
+    "truong-sa": ["QUẦN ĐẢO TRƯỜNG SA", "tỉnh Khánh Hòa"]
+  };
+  Object.keys(bd.dao || {}).forEach(function(nh){
+    var o = bd.dao[nh], k = o.khung;
+    (o.diem || []).forEach(function(v){
+      svg += '<circle cx="'+v[0]+'" cy="'+v[1]+'" r="2.8" fill="#8A3F11" opacity=".8"></circle>';
+    });
+    svg += '<rect class="dao-vien" x="'+k[0]+'" y="'+k[1]+'" width="'+k[2]+'" height="'+k[3]+'" rx="22"></rect>'+
+           '<text class="dao-chu" x="'+(k[0]+k[2]/2)+'" y="'+(k[1]-26)+'" text-anchor="middle">'+esc(nhanDao[nh][0])+'</text>'+
+           '<text class="dao-phu" x="'+(k[0]+k[2]/2)+'" y="'+(k[1]-7)+'" text-anchor="middle">'+esc(nhanDao[nh][1])+'</text>';
+  });
+
+  svg += '<g id="nhanTinh"></g></svg>';
+
+  var tongBe = ca.length;
+  document.getElementById("noi-dung").innerHTML =
+    '<section class="mo"><div class="mo-in"><div>'+
+      '<div class="chu">Chương trình Kéo và Đẩy</div>'+
+      '<h1>'+tongBe+' em nhỏ trên bản đồ</h1>'+
+      '<p class="gt">Chương trình đã đi tới '+dsTinh.length+' tỉnh. Tỉnh nào được tô màu là tỉnh đang có em nhỏ được đồng hành. '+
+      'Bấm vào tỉnh để xem danh sách các con ở đó.</p>'+
+    '</div></div><div class="vach"></div></section>'+
+    '<div class="bd-khung">'+svg+'</div>'+
+    '<div class="bd-giai"><span><i style="background:#F0A463"></i>tỉnh có em nhỏ được đồng hành</span>'+
+    '<span><i style="background:#FBEFE4;border:1px solid #E6D3C2"></i>tỉnh chương trình chưa tới</span></div>'+
+
+    dsTinh.map(function(ten){
+      var o = theoTinh[ten];
+      return '<section class="o-tinh" id="ds-'+khongDau(ten)+'">'+
+        '<h3>'+esc(ten)+'</h3>'+
+        '<div class="noi">'+o.be.length+' em nhỏ · '+o.dot.map(function(d){ return esc(d.khi || d.ten); }).join(", ")+'</div>'+
+        '<div class="dsbe" style="margin-top:11px">'+o.be.map(function(c){
+          return '<a class="mot-be" href="/be/'+esc(c.slug)+'">'+
+            '<div class="t">'+esc(c.ten)+'</div>'+
+            '<div class="d">'+esc([c.tuoi, c.dia_ban].filter(Boolean).join(" · "))+'</div>'+
+            '<div class="d" style="margin-top:7px;color:var(--cam-dam);font-weight:600">Xem hành trình →</div></a>';
+        }).join("")+'</div></section>';
+    }).join("")+
+
+    '<section class="cuoi" style="margin-top:22px"><div class="nhan">Chương trình Kéo và Đẩy</div>'+
+    '<p style="margin-top:9px">Bản đồ thêm một tỉnh mỗi lần chương trình đi tới một vùng đất mới. '+
+    'Chương trình đi cùng mỗi con tính bằng năm, cho tới khi con đạt chuẩn.</p>'+
+    '<a class="nut" href="/cac-be">Xem cây của chương trình</a>'+
+    '<a class="nut" href="/dang-ky.html" style="background:var(--trang);color:var(--cam-dam);border:1px solid var(--cam-vien);margin-left:9px">Giới thiệu một em nhỏ</a></section>';
+
+  /* nhãn đặt sau khi vẽ, vì phải đo được tỉnh nằm ở đâu */
+  var khungSvg = document.querySelector(".bd-khung svg");
+  var nhom = document.getElementById("nhanTinh");
+  var da = [];
+  dsTinh.forEach(function(ten){
+    var el = document.getElementById("tinh-" + khongDau(ten));
+    if (!el) return;
+    var b = el.getBBox();
+    var cx = b.x + b.width/2, cy = b.y + b.height/2;
+    var x = Math.min(cx + Math.max(b.width/2, 40) + 16, bd.w - 250);
+    var y = cy;
+    while (da.some(function(v){ return Math.abs(v - y) < 54; })) y += 54;
+    da.push(y);
+    var rong = Math.max(170, ten.length * 12 + 96);
+    nhom.insertAdjacentHTML("beforeend",
+      '<g class="nhan-tinh" onclick="document.getElementById(\'ds-'+khongDau(ten)+'\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" role="link" tabindex="0">'+
+      '<path d="M '+cx+' '+cy+' L '+(x-10)+' '+y+'" stroke="#C07A3E" stroke-width="2"></path>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#8A3F11"></circle>'+
+      '<rect x="'+x+'" y="'+(y-27)+'" width="'+rong+'" height="54" rx="16" fill="#FFFFFF" opacity=".92"></rect>'+
+      '<text class="ten" x="'+(x+16)+'" y="'+(y-4)+'">'+esc(ten)+'</text>'+
+      '<text class="dem" x="'+(x+16)+'" y="'+(y+17)+'">'+theoTinh[ten].be.length+' em nhỏ</text></g>');
+  });
 }
 
 /* danh sách người giới thiệu, đặt dưới cây */
@@ -690,10 +821,12 @@ function thanh(nhan, co, chuan, dv){
 function duongDan(){
   var p = location.pathname.replace(/\/+$/,"").toLowerCase();
   if (/\/(cac-be|cay)$/.test(p)) return { loai:"cay" };
+  if (/\/ban-do$/.test(p)) return { loai:"ban-do" };
   var m = location.pathname.replace(/\/+$/,"").match(/\/chuyen-vien\/([^\/]+)$/i);
   if (m) return { loai:"chuyen-vien", slug: decodeURIComponent(m[1]) };
   var t = new URLSearchParams(location.search);
   if (t.get("t") === "cay") return { loai:"cay" };
+  if (t.get("t") === "ban-do") return { loai:"ban-do" };
   if (t.get("cv")) return { loai:"chuyen-vien", slug: t.get("cv") };
   var s = laySlug();
   return s ? { loai:"be", slug:s } : { loai:"khong-biet" };
@@ -706,6 +839,7 @@ function duongDan(){
   var SB = window.supabase.createClient(CAU_HINH.url, CAU_HINH.khoa);
 
   if (r0.loai === "cay") { return veCay(SB); }
+  if (r0.loai === "ban-do") { return veBanDo(SB); }
   if (r0.loai === "chuyen-vien") { return veChuyenVien(SB, r0.slug); }
   var slug = r0.slug;
 
