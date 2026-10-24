@@ -191,6 +191,9 @@
   .nhan-tinh .ten{font-family:var(--dis);font-size:19px;font-weight:800;fill:var(--cam-toi)}
   .nhan-tinh .dem{font-family:var(--sans);font-size:15px;font-weight:600;fill:var(--cam-dam)}
   .nhan-tinh:hover .ten{fill:var(--cam)}
+  .ghim-vp{cursor:default}
+  .ghim-vp .ten{font-family:var(--dis);font-size:18px;font-weight:800;fill:#5A2E8C}
+  .ghim-vp .dia{font-family:var(--sans);font-size:13.5px;fill:var(--ink-3)}
   .bd-giai{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;font-size:13.5px;color:var(--ink-3);margin-bottom:6px}
   .bd-giai i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:7px;vertical-align:-2px}
   .o-tinh{background:var(--trang);border:1px solid var(--vien);border-left:5px solid var(--cam);
@@ -240,13 +243,15 @@ var MOC_TEN = {
   "de-xuat":"Hồ sơ gửi về chương trình",
   "phac-do":"Phân tích thể trạng",
   "khao-sat":"Đoàn đến tận nhà",
+  "tai-tro-xn":"Tài trợ làm xét nghiệm",
+  "ket-qua-xn":"Kết quả xét nghiệm",
   "hop-noi-bo":"Chương trình họp xét",
   "quyet-dinh":"Quyết định đồng hành",
   "giao-hang":"Trao quyết định và sản phẩm",
   "theo-doi":"Theo dõi và đo lại",
   "tu-lieu":"Hình ảnh và video"
 };
-var THU_TU = ["de-xuat","phac-do","khao-sat","theo-doi","hop-noi-bo","quyet-dinh","giao-hang","tu-lieu"];
+var THU_TU = ["de-xuat","phac-do","khao-sat","tai-tro-xn","ket-qua-xn","theo-doi","hop-noi-bo","quyet-dinh","giao-hang","tu-lieu"];
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
   return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -651,7 +656,8 @@ async function veBanDo(SB){
     '</div></div><div class="vach"></div></section>'+
     '<div class="bd-khung">'+svg+'</div>'+
     '<div class="bd-giai"><span><i style="background:#F0A463"></i>tỉnh có em nhỏ được đồng hành</span>'+
-    '<span><i style="background:#FBEFE4;border:1px solid #E6D3C2"></i>tỉnh chương trình chưa tới</span></div>'+
+    '<span><i style="background:#FBEFE4;border:1px solid #E6D3C2"></i>tỉnh chương trình chưa tới</span>'+
+    '<span><i style="background:#6D3FA3;border-radius:50%"></i>văn phòng Midu MenaQ7</span></div>'+
 
     dsTinh.map(function(ten){
       var o = theoTinh[ten];
@@ -694,6 +700,30 @@ async function veBanDo(SB){
       '<text class="ten" x="'+(x+16)+'" y="'+(y-4)+'">'+esc(ten)+'</text>'+
       '<text class="dem" x="'+(x+16)+'" y="'+(y+17)+'">'+theoTinh[ten].be.length+' em nhỏ</text></g>');
   });
+
+  /* nơi chương trình bắt đầu: văn phòng Midu MenaQ7 */
+  ghimNoi(nhom, bd, 105.7760, 20.9735, "Văn phòng Midu MenaQ7",
+          "Số 1, Galaxy 1, Ngân Hà Vạn Phúc, Hà Đông, Hà Nội", da);
+}
+
+/* Ghim một địa điểm theo kinh độ vĩ độ thật. Màu xanh, khác hẳn màu của các con. */
+function ghimNoi(nhom, bd, lon, lat, ten, dia, daDung){
+  var c = bd.chieu;
+  if (!c) return;
+  var x = (lon - c.lon0) * c.k * c.he, y = (c.lat1 - lat) * c.he;
+  var nx = Math.min(x + 34, bd.w - 330), ny = y;
+  while ((daDung || []).some(function(v){ return Math.abs(v - ny) < 58; })) ny -= 58;
+  var rong = Math.max(300, ten.length * 11 + 60);
+  nhom.insertAdjacentHTML("beforeend",
+    '<g class="ghim-vp">'+
+      '<path d="M '+x+' '+y+' L '+(nx-10)+' '+ny+'" stroke="#6D3FA3" stroke-width="2"></path>'+
+      '<path d="M '+x+' '+(y+4)+' C '+(x-13)+' '+(y-10)+', '+(x-11)+' '+(y-28)+', '+x+' '+(y-28)+
+        ' C '+(x+11)+' '+(y-28)+', '+(x+13)+' '+(y-10)+', '+x+' '+(y+4)+' Z" fill="#6D3FA3"></path>'+
+      '<circle cx="'+x+'" cy="'+(y-18)+'" r="5" fill="#FFFFFF"></circle>'+
+      '<rect x="'+nx+'" y="'+(ny-29)+'" width="'+rong+'" height="58" rx="17" fill="#FFFFFF" opacity=".93" stroke="#D9C7EC" stroke-width="1.5"></rect>'+
+      '<text class="ten" x="'+(nx+17)+'" y="'+(ny-5)+'">'+esc(ten)+'</text>'+
+      '<text class="dia" x="'+(nx+17)+'" y="'+(ny+16)+'">'+esc(dia)+'</text>'+
+    '</g>');
 }
 
 /* danh sách người giới thiệu, đặt dưới cây */
