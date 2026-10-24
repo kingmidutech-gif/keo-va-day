@@ -82,16 +82,20 @@
   /* hành trình vẽ thành con đường */
   .lo-trinh{position:relative;margin-top:10px}
   .lo-trinh svg.duong{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible}
-  .lo-trinh .mat-duong{fill:none;stroke:var(--cam-nhat2);stroke-width:26;stroke-linecap:round}
-  .lo-trinh .vien-duong{fill:none;stroke:var(--cam-vien);stroke-width:28;stroke-linecap:round}
-  .lo-trinh .tim-duong{fill:none;stroke:#fff;stroke-width:2.5;stroke-dasharray:9 11;stroke-linecap:round}
+  .lo-trinh .bong-duong{fill:none;stroke:rgba(138,63,17,.10);stroke-width:36;stroke-linecap:round;stroke-linejoin:round}
+  .lo-trinh .vien-duong{fill:none;stroke:#EBC6A2;stroke-width:34;stroke-linecap:round;stroke-linejoin:round}
+  .lo-trinh .mat-duong{fill:none;stroke:url(#menDuong);stroke-width:29;stroke-linecap:round;stroke-linejoin:round}
+  .lo-trinh .tim-duong{fill:none;stroke:#fff;stroke-width:3;stroke-dasharray:13 15;stroke-linecap:round;opacity:.95}
+  .lo-trinh .duoi-duong{fill:none;stroke:#EBC6A2;stroke-width:26;stroke-linecap:round;stroke-dasharray:0.1 30;opacity:.7}
   .cac-diem{position:relative;z-index:1}
   .diem{position:relative;display:flex;gap:16px;align-items:flex-start;min-height:132px;padding:4px 0}
   .diem .cot{flex:0 0 46px;display:flex;justify-content:center;padding-top:10px}
-  .diem .bi{width:34px;height:34px;border-radius:50%;background:var(--cam);color:#fff;
-    display:flex;align-items:center;justify-content:center;font-family:var(--dis);font-weight:800;font-size:14px;
-    box-shadow:0 0 0 6px var(--cam-nhat),0 6px 14px rgba(138,63,17,.22)}
-  .diem.cuoi .bi{background:var(--ok);box-shadow:0 0 0 6px var(--cam-nhat),0 6px 14px rgba(44,122,81,.3)}
+  .diem .bi{width:40px;height:40px;border-radius:50%;background:var(--cam);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:var(--dis);font-weight:800;font-size:15px;
+    box-shadow:0 0 0 4px #fff,0 0 0 9px var(--cam-nhat),0 8px 18px rgba(138,63,17,.26);
+    transition:transform .18s ease}
+  .diem .bi:hover{transform:scale(1.08)}
+  .diem.cuoi .bi{background:var(--ok);box-shadow:0 0 0 4px #fff,0 0 0 9px var(--cam-nhat),0 8px 18px rgba(44,122,81,.3)}
   .diem .noi-dung{flex:1;min-width:0;background:var(--trang);border:1px solid var(--vien);
     border-radius:var(--r-sm);padding:14px 16px;box-shadow:var(--bong)}
   .diem .ngay{font-family:var(--mono);font-size:12.5px;color:var(--cam-dam);font-weight:600}
@@ -101,13 +105,21 @@
   .diem .anh a{font-size:13px;background:var(--vang-nhat);border:1px solid var(--vang-vien);
     border-radius:9px;padding:6px 12px;text-decoration:none;color:var(--vang-chu);font-weight:600}
   .diem .anh img{width:124px;height:94px;object-fit:cover;border-radius:9px;border:1px solid var(--vien)}
+  @media(max-width:679px){
+    .diem{min-height:142px;gap:11px}
+    .diem .cot{flex:0 0 60px}
+    .diem .bi{width:36px;height:36px;font-size:14px}
+    .diem .noi-dung{padding:12px 13px}
+    .diem.phai .bi{transform:translateX(22px)}
+    .diem.phai .bi:hover{transform:translateX(22px) scale(1.08)}
+  }
   @media(min-width:680px){
-    .diem{min-height:154px}
+    .diem{min-height:168px}
     .diem.phai{flex-direction:row-reverse}
-    .diem.phai .noi-dung{margin-right:8px}
-    .diem.trai .noi-dung{margin-left:8px}
-    .diem .cot{flex:0 0 96px}
-    .diem .noi-dung{max-width:calc(100% - 120px)}
+    .diem.phai .noi-dung{margin-right:10px}
+    .diem.trai .noi-dung{margin-left:10px}
+    .diem .cot{flex:0 0 132px}
+    .diem .noi-dung{max-width:min(430px, calc(100% - 156px))}
   }
   .cot-moc{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:16px;
     background:var(--vang-nhat);border:1px solid var(--vang-vien);border-radius:var(--r-pill);
@@ -343,21 +355,37 @@ function veConDuong(){
     return { x: r.left - g.left + r.width/2, y: r.top - g.top + r.height/2 };
   });
 
-  var d = "M " + toado[0].x + " 0";
-  for (var i = 0; i < toado.length; i++) {
-    var p = toado[i];
-    if (i === 0) { d += " L " + p.x + " " + p.y; continue; }
-    var t = toado[i-1];
-    var giua = (t.y + p.y) / 2;
-    d += " C " + t.x + " " + giua + ", " + p.x + " " + giua + ", " + p.x + " " + p.y;
+  /* đoạn đầu: đường đi từ mép trên xuống điểm thứ nhất, hơi nghiêng cho đỡ cứng */
+  var dau = toado[0];
+  var ke = toado[1] || dau;
+  var d = "M " + (dau.x + (dau.x - ke.x) * 0.22) + " 0" +
+          " C " + dau.x + " " + (dau.y * 0.4) + ", " + dau.x + " " + (dau.y * 0.7) + ", " + dau.x + " " + dau.y;
+
+  /* các đoạn giữa: điểm uốn đặt lệch nhau nên khúc cua mềm chứ không gấp */
+  for (var i = 1; i < toado.length; i++) {
+    var t = toado[i-1], p = toado[i];
+    var cao = p.y - t.y;
+    d += " C " + t.x + " " + (t.y + cao * 0.55) + ", " + p.x + " " + (p.y - cao * 0.55) + ", " + p.x + " " + p.y;
   }
+
+  /* đuôi: chấm thưa dần, ý là con đường còn đi tiếp */
   var cuoi = toado[toado.length-1];
-  d += " L " + cuoi.x + " " + g.height;
+  var truoc = toado[toado.length-2] || cuoi;
+  var dDuoi = "M " + cuoi.x + " " + cuoi.y +
+    " C " + cuoi.x + " " + (cuoi.y + 40) + ", " +
+            (cuoi.x + (cuoi.x - truoc.x) * 0.3) + " " + (g.height - 40) + ", " +
+            (cuoi.x + (cuoi.x - truoc.x) * 0.3) + " " + g.height;
 
   svg.setAttribute("viewBox", "0 0 " + g.width + " " + g.height);
   svg.setAttribute("width", g.width);
   svg.setAttribute("height", g.height);
   svg.innerHTML =
+    '<defs><linearGradient id="menDuong" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0" stop-color="#FBE5D2"></stop>'+
+      '<stop offset="1" stop-color="#F7D8BE"></stop>'+
+    '</linearGradient></defs>'+
+    '<path class="duoi-duong" d="'+dDuoi+'"></path>'+
+    '<path class="bong-duong" d="'+d+'"></path>'+
     '<path class="vien-duong" d="'+d+'"></path>'+
     '<path class="mat-duong" d="'+d+'"></path>'+
     '<path class="tim-duong" d="'+d+'"></path>';
