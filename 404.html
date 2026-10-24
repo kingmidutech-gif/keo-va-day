@@ -176,17 +176,33 @@
   .chu-giai{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:4px;font-size:13px;color:var(--ink-3)}
   .chu-giai i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 
+  /* anh chị em cùng nhà */
+  .nha{background:var(--vang-nhat);border:1px solid var(--vang-vien);border-radius:var(--r);
+    padding:16px 18px;margin-bottom:18px}
+  .nha .dau{display:flex;gap:9px;align-items:center;font-size:10.5px;font-weight:800;
+    text-transform:uppercase;letter-spacing:.14em;color:var(--vang-chu)}
+  .nha p{font-size:15px;color:var(--ink-2);margin-top:7px}
+  .nha .ds{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
+  .nha .ds a,.nha .ds span{display:inline-flex;align-items:center;gap:7px;background:var(--trang);
+    border:1px solid var(--vang-vien);border-radius:var(--r-pill);padding:8px 15px;
+    font-weight:700;font-size:14.5px;text-decoration:none;color:var(--cam-toi)}
+  .nha .ds a:hover{border-color:var(--cam);color:var(--cam-dam)}
+  .nha .ds span{color:var(--ink-4);font-weight:600}
+  .mot-be .nha-nho{font-size:12.5px;color:var(--vang-chu);background:var(--vang-nhat);
+    border:1px solid var(--vang-vien);border-radius:9px;padding:3px 9px;display:inline-block;margin-top:7px}
+
   /* bản đồ */
   .bd-khung{background:linear-gradient(180deg,#F4FAFB 0%,var(--cam-nhat) 100%);
     border:1px solid var(--cam-vien);border-radius:26px;box-shadow:var(--bong);
     padding:16px 12px 10px;margin:24px 0 14px;overflow:hidden}
   .bd-khung svg{display:block;width:100%;height:auto}
   .tinh{fill:#FBEFE4;stroke:#FFFFFF;stroke-width:1.1}
-  .tinh.co-be{fill:#F0A463;stroke:#FFFFFF;stroke-width:1.4;cursor:pointer}
-  .tinh.co-be:hover{fill:#DE7127}
-  .dao-vien{fill:none;stroke:#C99A6E;stroke-width:2.4;stroke-dasharray:11 9;opacity:.85}
-  .dao-chu{font-family:var(--dis);font-size:17px;font-weight:800;fill:var(--cam-sau);letter-spacing:.04em}
-  .dao-phu{font-family:var(--sans);font-size:14px;fill:var(--ink-4)}
+  .tinh.co-be{stroke:#7A370F;stroke-width:2.2;stroke-linejoin:round;cursor:pointer}
+  .tinh.co-be.t0{fill:#E8914A}
+  .tinh.co-be.t1{fill:#F3B071}
+  .tinh.co-be.t2{fill:#D97A33}
+  .tinh.co-be:hover{fill:#C65F18}
+  .dao-chu{font-family:var(--sans);font-size:15px;font-weight:700;fill:#A2704A}
   .nhan-tinh{cursor:pointer}
   .nhan-tinh .ten{font-family:var(--dis);font-size:19px;font-weight:800;fill:var(--cam-toi)}
   .nhan-tinh .dem{font-family:var(--sans);font-size:15px;font-weight:600;fill:var(--cam-dam)}
@@ -280,7 +296,7 @@ function khongThay(tieu, loi){
     '<a class="nut" href="/">Về trang chương trình</a></div>';
 }
 
-function veTrang(c, moc, doLai, bai){
+function veTrang(c, moc, doLai, bai, cungNha){
   var h = '';
 
   /* mở đầu */
@@ -296,6 +312,16 @@ function veTrang(c, moc, doLai, bai){
   if (c.cau_chuyen && c.cau_chuyen_tt === "da-duyet") {
     h += '<section class="the chuyen"><div class="nhan">Câu chuyện của con</div>'+
          '<p style="margin-top:10px">'+esc(c.cau_chuyen)+'</p></section>';
+  }
+
+  /* anh chị em cùng nhà */
+  if (cungNha && cungNha.length) {
+    h += '<section class="nha"><div class="dau">👨‍👩‍👧‍👦 Cùng một nhà</div>'+
+      '<p>'+esc(c.ten)+' và '+esc(cungNha.map(function(x){ return x.ten; }).join(", "))+
+      ' là người một nhà, cùng được chương trình nhận đồng hành. Mỗi em một hồ sơ riêng, một phác đồ riêng.</p>'+
+      '<div class="ds">'+cungNha.map(function(x){
+        return '<a href="/be/'+esc(x.slug)+'">'+esc(x.ten)+(x.tuoi ? ' · '+esc(x.tuoi) : '')+' →</a>';
+      }).join("")+'</div></section>';
   }
 
   /* so với chuẩn */
@@ -583,8 +609,8 @@ async function veCay(SB){
       'Mỗi quả trên cành là một đứa trẻ. Bấm vào quả để mở hành trình riêng của con.</p>'+
     '</div></div><div class="vach"></div></section>'+
     '<div class="cay-khung">'+svg+'</div>'+
-    '<div class="chu-giai"><span><i style="background:#DE7127"></i>mỗi quả là một em nhỏ, bấm để mở hành trình</span>'+
-    '<span><i style="background:#A85219"></i>'+nhom.length+' chuyến đã đi</span></div>'+
+    '<div class="chu-giai"><span><i style="background:#DE7127"></i>Mỗi quả là một em nhỏ, bấm để mở hành trình</span>'+
+    '<span><i style="background:#A85219"></i>Đã đi '+nhom.length+' chuyến</span></div>'+
     dsChuyenVien(ca)+
     '<section class="cuoi" style="margin-top:22px"><div class="nhan">Chương trình Kéo và Đẩy</div>'+
     '<p style="margin-top:9px">Cây mọc thêm một cành mỗi lần chương trình đi một tỉnh mới, và thêm một quả mỗi lần nhận đồng hành một em nhỏ. '+
@@ -600,7 +626,7 @@ async function veBanDo(SB){
 
   var t = await Promise.all([
     SB.from("dot").select("*").order("thu_tu"),
-    SB.from("ca").select("id,ten,slug,dot,dia_ban,tuoi,cong_khai").eq("cong_khai", true).order("id"),
+    SB.from("ca").select("id,ten,slug,dot,dia_ban,tuoi,gia_dinh,cong_khai").eq("cong_khai", true).order("id"),
     fetch("/ban-do-vn.json").then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
   ]);
   var dot = t[0].data || [], ca = t[1].data || [], bd = t[2];
@@ -623,25 +649,20 @@ async function veBanDo(SB){
 
   /* các tỉnh */
   Object.keys(bd.tinh).forEach(function(ten){
-    var co = dsTinh.indexOf(ten) >= 0;
-    svg += '<path id="tinh-'+khongDau(ten)+'" class="tinh'+(co ? " co-be" : "")+'" d="'+bd.tinh[ten]+'"'+
+    var vt = dsTinh.indexOf(ten), co = vt >= 0;
+    svg += '<path id="tinh-'+khongDau(ten)+'" class="tinh'+(co ? " co-be t" + (vt % 3) : "")+'" d="'+bd.tinh[ten]+'"'+
            (co ? ' onclick="document.getElementById(\'ds-'+khongDau(ten)+'\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" role="link" tabindex="0"' : '')+
            '><title>'+esc(ten)+(co ? " · " + theoTinh[ten].be.length + " em nhỏ" : "")+'</title></path>';
   });
 
   /* hai quần đảo */
-  var nhanDao = {
-    "hoang-sa": ["QUẦN ĐẢO HOÀNG SA", "thành phố Đà Nẵng"],
-    "truong-sa": ["QUẦN ĐẢO TRƯỜNG SA", "tỉnh Khánh Hòa"]
-  };
+  var nhanDao = { "hoang-sa": "Quần đảo Hoàng Sa", "truong-sa": "Quần đảo Trường Sa" };
   Object.keys(bd.dao || {}).forEach(function(nh){
     var o = bd.dao[nh], k = o.khung;
     (o.diem || []).forEach(function(v){
-      svg += '<circle cx="'+v[0]+'" cy="'+v[1]+'" r="2.8" fill="#8A3F11" opacity=".8"></circle>';
+      svg += '<circle cx="'+v[0]+'" cy="'+v[1]+'" r="2.6" fill="#B4551A" opacity=".75"></circle>';
     });
-    svg += '<rect class="dao-vien" x="'+k[0]+'" y="'+k[1]+'" width="'+k[2]+'" height="'+k[3]+'" rx="22"></rect>'+
-           '<text class="dao-chu" x="'+(k[0]+k[2]/2)+'" y="'+(k[1]-26)+'" text-anchor="middle">'+esc(nhanDao[nh][0])+'</text>'+
-           '<text class="dao-phu" x="'+(k[0]+k[2]/2)+'" y="'+(k[1]-7)+'" text-anchor="middle">'+esc(nhanDao[nh][1])+'</text>';
+    svg += '<text class="dao-chu" x="'+(k[0]+k[2]/2)+'" y="'+(k[1]+4)+'" text-anchor="middle">'+esc(nhanDao[nh])+'</text>';
   });
 
   svg += '<g id="nhanTinh"></g></svg>';
@@ -655,9 +676,9 @@ async function veBanDo(SB){
       'Bấm vào tỉnh để xem danh sách các con ở đó.</p>'+
     '</div></div><div class="vach"></div></section>'+
     '<div class="bd-khung">'+svg+'</div>'+
-    '<div class="bd-giai"><span><i style="background:#F0A463"></i>tỉnh có em nhỏ được đồng hành</span>'+
-    '<span><i style="background:#FBEFE4;border:1px solid #E6D3C2"></i>tỉnh chương trình chưa tới</span>'+
-    '<span><i style="background:#6D3FA3;border-radius:50%"></i>văn phòng Midu MenaQ7</span></div>'+
+    '<div class="bd-giai"><span><i style="background:#F0A463"></i>Tỉnh có em nhỏ được đồng hành</span>'+
+    '<span><i style="background:#FBEFE4;border:1px solid #E6D3C2"></i>Tỉnh chương trình chưa tới</span>'+
+    '<span><i style="background:#6D3FA3;border-radius:50%"></i>Văn phòng Midu MenaQ7</span></div>'+
 
     dsTinh.map(function(ten){
       var o = theoTinh[ten];
@@ -665,9 +686,11 @@ async function veBanDo(SB){
         '<h3>'+esc(ten)+'</h3>'+
         '<div class="noi">'+o.be.length+' em nhỏ · '+o.dot.map(function(d){ return esc(d.khi || d.ten); }).join(", ")+'</div>'+
         '<div class="dsbe" style="margin-top:11px">'+o.be.map(function(c){
+          var ae = c.gia_dinh ? ca.filter(function(x){ return x.gia_dinh === c.gia_dinh && x.id !== c.id; }) : [];
           return '<a class="mot-be" href="/be/'+esc(c.slug)+'">'+
             '<div class="t">'+esc(c.ten)+'</div>'+
             '<div class="d">'+esc([c.tuoi, c.dia_ban].filter(Boolean).join(" · "))+'</div>'+
+            (ae.length ? '<div class="nha-nho">Cùng nhà với '+esc(ae.map(function(x){ return x.ten; }).join(", "))+'</div>' : '')+
             '<div class="d" style="margin-top:7px;color:var(--cam-dam);font-weight:600">Xem hành trình →</div></a>';
         }).join("")+'</div></section>';
     }).join("")+
@@ -686,7 +709,9 @@ async function veBanDo(SB){
     var el = document.getElementById("tinh-" + khongDau(ten));
     if (!el) return;
     var b = el.getBBox();
-    var cx = b.x + b.width/2, cy = b.y + b.height/2;
+    var tm = (bd.tam || {})[ten];
+    var cx = tm ? tm[0] : b.x + b.width/2;
+    var cy = tm ? tm[1] : b.y + b.height/2;
     var x = Math.min(cx + Math.max(b.width/2, 40) + 16, bd.w - 250);
     var y = cy;
     while (da.some(function(v){ return Math.abs(v - y) < 54; })) y += 54;
@@ -695,7 +720,7 @@ async function veBanDo(SB){
     nhom.insertAdjacentHTML("beforeend",
       '<g class="nhan-tinh" onclick="document.getElementById(\'ds-'+khongDau(ten)+'\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" role="link" tabindex="0">'+
       '<path d="M '+cx+' '+cy+' L '+(x-10)+' '+y+'" stroke="#C07A3E" stroke-width="2"></path>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="7" fill="#8A3F11"></circle>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="8.5" fill="#6E3009" stroke="#FFFFFF" stroke-width="2.5"></circle>'+
       '<rect x="'+x+'" y="'+(y-27)+'" width="'+rong+'" height="54" rx="16" fill="#FFFFFF" opacity=".92"></rect>'+
       '<text class="ten" x="'+(x+16)+'" y="'+(y-4)+'">'+esc(ten)+'</text>'+
       '<text class="dem" x="'+(x+16)+'" y="'+(y+17)+'">'+theoTinh[ten].be.length+' em nhỏ</text></g>');
@@ -742,7 +767,7 @@ function dsChuyenVien(ca){
     '<div class="dsbe">'+ds.map(function(n){
       return '<a class="mot-be" href="/chuyen-vien/'+encodeURIComponent(n.slug)+'">'+
         '<div class="t">'+esc(n.ten)+'</div>'+
-        '<div class="s">'+n.so+' em nhỏ đã giới thiệu</div></a>';
+        '<div class="s">Đã giới thiệu '+n.so+' em nhỏ</div></a>';
     }).join("")+'</div></section>';
 }
 
@@ -882,9 +907,13 @@ function duongDan(){
     var t = await Promise.all([
       SB.from("moc").select("*").eq("ca_id", c.id),
       SB.from("tai_danh_gia").select("*").eq("ca_id", c.id).order("ngay"),
-      SB.from("truyen_thong").select("*").eq("ca_id", c.id).order("ngay", {ascending:false})
+      SB.from("truyen_thong").select("*").eq("ca_id", c.id).order("ngay", {ascending:false}),
+      c.gia_dinh
+        ? SB.from("ca").select("id,ten,slug,tuoi,cong_khai").eq("gia_dinh", c.gia_dinh).eq("cong_khai", true)
+        : Promise.resolve({ data: [] })
     ]);
-    veTrang(c, t[0].data || [], t[1].data || [], t[2].data || []);
+    veTrang(c, t[0].data || [], t[1].data || [], t[2].data || [],
+            (t[3].data || []).filter(function(x){ return x.id !== c.id; }));
   } catch (e) {
     khongThay("Chưa mở được hồ sơ", "Hệ thống đang bận. Thử lại sau ít phút.");
   }
