@@ -351,7 +351,7 @@ function veTrang(c, moc, doLai, bai){
   h += '<section class="cuoi"><div class="nhan">Chương trình Kéo và Đẩy</div>'+
     '<p style="margin-top:9px">Midu MenaQ7 trích 5% lợi nhuận sau thuế để tài trợ trọn gói giải pháp phát triển chiều cao cho trẻ thấp còi có hoàn cảnh khó khăn. Chương trình đồng hành tính bằng năm, cho tới khi con đạt chuẩn.</p>'+
     '<a class="nut" href="/dang-ky.html">Giới thiệu một em nhỏ</a>'+
-    '<a class="nut" href="/cay" style="background:var(--trang);color:var(--cam-dam);border:1px solid var(--cam-vien);margin-left:9px">Xem tất cả các em nhỏ</a></section>';
+    '<a class="nut" href="/cac-be" style="background:var(--trang);color:var(--cam-dam);border:1px solid var(--cam-vien);margin-left:9px">Xem tất cả các em nhỏ</a></section>';
 
   document.getElementById("noi-dung").innerHTML = h;
   document.title = c.ten + " · Hành trình cùng Kéo và Đẩy";
@@ -651,7 +651,7 @@ async function veChuyenVien(SB, slug){
     '<section class="cuoi"><div class="nhan">Chương trình Kéo và Đẩy</div>'+
     '<p style="margin-top:9px">Chuyên viên chiều cao là người phát hiện, đề xuất và theo dõi từng trường hợp tại địa phương. '+
     'Không có họ thì chương trình không biết những đứa trẻ này ở đâu.</p>'+
-    '<a class="nut" href="/cay">Xem tất cả các em nhỏ</a></section>';
+    '<a class="nut" href="/cac-be">Xem tất cả các em nhỏ</a></section>';
 }
 function so2(v){ return String(v).replace(".", ","); }
 
@@ -667,7 +667,7 @@ function thanh(nhan, co, chuan, dv){
 
 function duongDan(){
   var p = location.pathname.replace(/\/+$/,"").toLowerCase();
-  if (/\/cay$/.test(p)) return { loai:"cay" };
+  if (/\/(cac-be|cay)$/.test(p)) return { loai:"cay" };
   var m = location.pathname.replace(/\/+$/,"").match(/\/chuyen-vien\/([^\/]+)$/i);
   if (m) return { loai:"chuyen-vien", slug: decodeURIComponent(m[1]) };
   var t = new URLSearchParams(location.search);
