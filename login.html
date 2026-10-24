@@ -541,7 +541,8 @@ async function napTatCa(){
     SB.from("dot").select("*").order("thu_tu"),
     SB.from("ca_tom_tat").select("*").order("id").limit(1000),
     SB.from("nhom_quyen").select("*"),
-    SB.from("vat_tu_dot").select("*")
+    SB.from("vat_tu_dot").select("*"),
+    SB.from("chuyen_vien").select("*").order("ten")
   ];
   if(QUYEN.duyet_dang_ky||!TOI)yc.push(SB.from("dang_ky").select("*").order("tao_luc",{ascending:false}).limit(300));
   else yc.push(Promise.resolve({data:[]}));
@@ -549,7 +550,7 @@ async function napTatCa(){
   else yc.push(Promise.resolve({data:[]}));
   var t=await Promise.all(yc);
   D={dot:t[0].data||[], ca:t[1].data||[], nhom_quyen:t[2].data||[], vat_tu:t[3].data||[],
-     dang_ky:t[4].data||[], nguoi_dung:t[5].data||[],
+     chuyen_vien:t[4].data||[], dang_ky:t[5].data||[], nguoi_dung:t[6].data||[],
      moc:D.moc||[], xet_nghiem:D.xet_nghiem||[], tai_danh_gia:D.tai_danh_gia||[],
      lieu_trinh:D.lieu_trinh||[], truyen_thong:D.truyen_thong||[]};
 }
@@ -740,7 +741,8 @@ var trang="tong-quan",moCa=null,loc="all",tim="",locDK="moi",tabCa="thong-tin",o
 function cacTab(){
   var t=[{k:"tong-quan",n:"Tổng quan"}];
   if(QUYEN.duyet_dang_ky)t.push({k:"dang-ky",n:"Đơn đăng ký",chuong:(D.dang_ky||[]).filter(function(x){return x.trang_thai==="moi";}).length});
-  t.push({k:"ho-so",n:"Hồ sơ ca"},{k:"dot",n:"Đợt triển khai"},{k:"quy-trinh",n:"Quy trình"});
+  t.push({k:"ho-so",n:"Hồ sơ ca"},{k:"dot",n:"Đợt triển khai"},
+         {k:"nguoi-gt",n:"Người giới thiệu"},{k:"quy-trinh",n:"Quy trình"});
   if(QUYEN.quan_tri)t.push({k:"quan-tri",n:"Quản trị"});
   return t;
 }
@@ -749,6 +751,49 @@ function veTab(){
     return '<button class="tab" data-tab="'+t.k+'"'+(trang===t.k?' aria-current="page"':'')+'>'+esc(t.n)+
       (t.chuong?'<span class="dot">'+t.chuong+'</span>':'')+'</button>';
   }).join("");
+}
+
+/* ===================== người giới thiệu ===================== */
+function trangNguoiGT(){
+  var ds=(D.chuyen_vien||[]).slice().sort(function(a,b){return String(a.ten||"").localeCompare(String(b.ten||""),"vi");});
+  var h='<section class="sec"><div class="sec-head"><h2>Người giới thiệu</h2>'+
+    '<span class="sub">ảnh và lời giới thiệu ở đây hiện thẳng lên trang công khai của từng người</span></div>';
+  if(!ds.length){
+    h+='<div class="card card-pad"><div class="anh-trong">Chưa có ai trong danh sách. '+
+       'Danh sách lấy từ cột người đề xuất của các hồ sơ ca.</div></div>';
+    return h+'</section>';
+  }
+  ds.forEach(function(n){
+    var mo=(oMo==="cv:"+n.slug), boAnh=(n.bo_anh||[]);
+    h+='<div class="card card-pad" style="margin-bottom:13px">'+
+      '<div class="anh-bia">'+
+        (n.anh&&loaiLink(n.anh).loai==="anh"
+          ? '<img src="'+esc(n.anh)+'" alt="Ảnh của '+esc(n.ten)+'">'
+          : '<div class="anh-trong" style="width:112px;text-align:center;padding:18px 8px">chưa có ảnh</div>')+
+        '<div style="flex:1;min-width:220px">'+
+          '<div style="font-family:var(--dis);font-weight:800;font-size:18px">'+esc(n.ten)+'</div>'+
+          '<div class="hint">'+esc(n.vai_tro||"Chuyên viên chiều cao")+'</div>'+
+          '<p class="hint" style="margin-top:6px;max-width:62ch">'+
+            esc(n.gioi_thieu||"Chưa có lời giới thiệu riêng. Trang công khai đang dùng đoạn mặc định.")+'</p>'+
+          '<div class="hint" style="margin-top:7px">Trang công khai: '+
+            '<a href="https://keoday.midu.vn/chuyen-vien/'+esc(n.slug)+'" target="_blank" rel="noopener">/chuyen-vien/'+esc(n.slug)+'</a></div>'+
+        '</div></div>'+
+      (boAnh.length?'<div class="anh-hs">'+boAnh.map(function(u){return oMedia(u);}).join("")+'</div>':'');
+    if(suaTT()){
+      if(!mo)h+='<button class="mo-sua" data-mo="cv:'+esc(n.slug)+'">✎ Sửa ảnh và giới thiệu</button>';
+      else h+='<div class="edit"><div class="frow">'+
+        '<input type="text" data-cv="anh" value="'+esc(n.anh||"")+'" placeholder="Link ảnh chân dung" aria-label="Link ảnh chân dung">'+
+        '<input type="text" data-cv="vai_tro" value="'+esc(n.vai_tro||"")+'" placeholder="Vai trò, ví dụ Chuyên viên chiều cao tại Quảng Trị" aria-label="Vai trò">'+
+        '</div>'+
+        '<textarea data-cv="gioi_thieu" placeholder="Đôi dòng về người này, hiện ở đầu trang công khai" aria-label="Giới thiệu" style="width:100%;margin-top:9px;min-height:84px">'+esc(n.gioi_thieu||"")+'</textarea>'+
+        '<input type="text" data-cv="bo_anh" value="'+esc(boAnh.join(", "))+'" placeholder="Link ảnh hoạt động, nhiều link cách nhau bằng dấu phẩy" aria-label="Ảnh hoạt động" style="width:100%;margin-top:9px">'+
+        '<div class="acts"><button class="btn btn-main" data-luucv="'+esc(n.slug)+'">Lưu</button>'+
+        '<button class="btn" data-mo="">Xong</button>'+
+        '<span class="hint">Chỉ đặt ảnh đã được người đó đồng ý cho dùng công khai.</span></div></div>';
+    }
+    h+='</div>';
+  });
+  return h+'</section>';
 }
 
 /* ===================== tổng quan ===================== */
@@ -1351,6 +1396,7 @@ function ve(){
   else if(trang==="dang-ky")h+=trangDangKy();
   else if(trang==="ho-so")h+=trangHoSo();
   else if(trang==="dot")h+=trangDot();
+  else if(trang==="nguoi-gt")h+=trangNguoiGT();
   else if(trang==="quy-trinh")h+=trangQuyTrinh();
   else if(trang==="quan-tri")h+=trangQuanTri();
   h+='<div class="foot">Luồng 10 mốc dựng theo mô tả của ban chuyên môn trong họp <b>23/10/2026</b>. '+
@@ -1362,7 +1408,7 @@ function ve(){
 
 /* ===================== sự kiện ===================== */
 document.addEventListener("click",async function(ev){
-  var t=ev.target.closest("[data-tab],[data-tabca],[data-mo],[data-ca],[data-back],[data-delcase],[data-loc],[data-locdk],[data-chep],[data-duyet],[data-daxem],[data-tuchoi],[data-luuca],[data-luumoc],[data-themdong],[data-xoadong],[data-luuchuyen],[data-luuanh],[data-xoaanh],[data-themlt],[data-xoalt],[data-themtt],[data-xoatt],[data-khoa],#addCase,#themNhom");
+  var t=ev.target.closest("[data-tab],[data-tabca],[data-mo],[data-ca],[data-back],[data-delcase],[data-loc],[data-locdk],[data-chep],[data-duyet],[data-daxem],[data-tuchoi],[data-luuca],[data-luumoc],[data-themdong],[data-xoadong],[data-luuchuyen],[data-luuanh],[data-xoaanh],[data-themlt],[data-xoalt],[data-themtt],[data-xoatt],[data-luucv],[data-khoa],#addCase,#themNhom");
   if(!t)return;
   if(t.hasAttribute("data-tab")){trang=t.getAttribute("data-tab");moCa=null;oMo="";window.scrollTo(0,0);return ve();}
   if(t.hasAttribute("data-tabca")){tabCa=t.getAttribute("data-tabca");oMo="";return ve();}
@@ -1450,6 +1496,16 @@ document.addEventListener("click",async function(ev){
     await ghi("moc",bg,"ca_id,khoa");
     await lamMoi();
     return ve();
+  }
+  if(t.hasAttribute("data-luucv")){
+    var sl=t.getAttribute("data-luucv"),bxc=t.closest(".card");
+    var layc=function(n){var e=bxc.querySelector('[data-cv="'+n+'"]');return e?e.value.trim():"";};
+    var cu3=(D.chuyen_vien||[]).filter(function(x){return x.slug===sl;})[0]||{};
+    var r3=await ghi("chuyen_vien",{slug:sl, ten:cu3.ten||sl,
+      anh:layc("anh")||null, vai_tro:layc("vai_tro")||null, gioi_thieu:layc("gioi_thieu")||null,
+      bo_anh:layc("bo_anh").split(",").map(function(x){return x.trim();}).filter(Boolean)},"slug");
+    if(r3&&r3.ok===false)alert("Chưa lưu được: "+r3.loi);
+    oMo="";await lamMoi();return ve();
   }
   if(t.hasAttribute("data-themdong")){
     var bang=t.getAttribute("data-themdong"),cid3=t.getAttribute("data-cid"),bx=t.closest(".edit");
