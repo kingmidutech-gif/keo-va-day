@@ -294,7 +294,7 @@ function veTrang(c, moc, doLai, bai){
   }
 
   /* hành trình vẽ thành con đường */
-  var buoc = THU_TU.map(function(k){return moc.filter(function(m){return m.khoa===k;})[0];}).filter(Boolean);
+  var buoc = sapTheoNgay(THU_TU.map(function(k){return moc.filter(function(m){return m.khoa===k;})[0];}).filter(Boolean));
   if (buoc.length) {
     h += '<section class="the"><h2>Con đường đã đi</h2><div class="lo-trinh" id="loTrinh">'+
       '<svg class="duong" id="veDuong" preserveAspectRatio="none" aria-hidden="true"></svg>'+
@@ -463,8 +463,6 @@ async function veCay(SB){
     svg += '<circle cx="'+(xThan+c[0])+'" cy="'+(yNgon+c[1])+'" r="'+c[2]+'" fill="'+
            ["#2F7F55","#388D5F","#45A06D"][c[3]]+'"></circle>';
   });
-  svg += '<text class="ngon-chu" x="'+xThan+'" y="'+(yNgon-4)+'" text-anchor="middle" fill="#FFFFFF">Nâng cao tầm vóc</text>'+
-         '<text class="ngon-chu" x="'+xThan+'" y="'+(yNgon+20)+'" text-anchor="middle" fill="#FFFFFF">trẻ em Việt</text>';
 
   /* ---- gò đất ---- */
   svg += '<path d="M 0 '+(yGoc+34)+' C '+(W*0.22)+' '+(yGoc-6)+', '+(W*0.78)+' '+(yGoc-6)+', '+W+' '+(yGoc+34)+
@@ -488,12 +486,16 @@ async function veCay(SB){
   svg += '<path d="M '+(xThan-13)+' '+(yGoc-30)+' C '+(xThan-8)+' '+(yGoc-220)+', '+(xThan-6)+' '+(yNgon+160)+', '+(xThan-4)+' '+(yNgon+40)+
          '" stroke="#FFFFFF" stroke-opacity=".13" stroke-width="7" fill="none" stroke-linecap="round"></path>';
 
+  /* chữ trong tán: đặt trên đỉnh thân nên không bị thân che */
+  svg += '<text class="ngon-chu" x="'+xThan+'" y="'+(yNgon-50)+'" text-anchor="middle">Nâng cao tầm vóc</text>'+
+         '<text class="ngon-chu" x="'+xThan+'" y="'+(yNgon-26)+'" text-anchor="middle">trẻ em Việt</text>';
+
   /* ---- cành theo đợt, xen kẽ hai bên ---- */
   nhom.forEach(function(g, i){
     var yCanh = yGoc - 150 - i * 208;
     var huong = (i % 2 === 0) ? -1 : 1;
     var xDau = xThan + huong * 18;
-    var xCuoi = xThan + huong * Math.min(hep ? 252 : 360, (hep ? 128 : 170) + g.be.length * (hep ? 26 : 34));
+    var xCuoi = xThan + huong * Math.min(hep ? 246 : 338, (hep ? 126 : 164) + g.be.length * (hep ? 26 : 34));
     var yCuoi = yCanh - 126;
     var c1x = xThan + huong*120, c1y = yCanh, c2x = xCuoi - huong*60, c2y = yCuoi;
     var duong = "M "+xDau+" "+yCanh+" C "+c1x+" "+c1y+", "+c2x+" "+c2y+", "+xCuoi+" "+yCuoi;
@@ -510,9 +512,14 @@ async function veCay(SB){
     });
 
     var phan = String(g.d.ten).split(/\s*·\s*/);
-    svg += '<text class="nhan-dot so" x="'+xCuoi+'" y="'+(yCuoi - 72)+'" text-anchor="middle">'+esc(phan[0])+'</text>'+
-           '<text class="nhan-dot" x="'+xCuoi+'" y="'+(yCuoi - 53)+'" text-anchor="middle">'+esc(phan[1] || "")+'</text>'+
-           '<text class="nhan-dot khi" x="'+xCuoi+'" y="'+(yCuoi - 36)+'" text-anchor="middle">'+esc(g.d.khi || "")+'</text>';
+    var nCao = hep ? 72 : 56;
+    var nRong = Math.max(hep ? 152 : 104, String(phan[1] || "").length * (hep ? 12 : 9) + (hep ? 46 : 36));
+    var nY = yCuoi - nCao - 14;
+    svg += '<path d="M '+xCuoi+' '+(yCuoi - 4)+' L '+xCuoi+' '+(nY + nCao)+'" stroke="#C99A6E" stroke-width="2"></path>'+
+           '<rect x="'+(xCuoi - nRong/2)+'" y="'+nY+'" width="'+nRong+'" height="'+nCao+'" rx="15" fill="#FFFFFF" opacity=".86"></rect>'+
+           '<text class="nhan-dot so" x="'+xCuoi+'" y="'+(nY + (hep ? 24 : 18))+'" text-anchor="middle">'+esc(phan[0])+'</text>'+
+           '<text class="nhan-dot" x="'+xCuoi+'" y="'+(nY + (hep ? 47 : 36))+'" text-anchor="middle">'+esc(phan[1] || "")+'</text>'+
+           '<text class="nhan-dot khi" x="'+xCuoi+'" y="'+(nY + (hep ? 65 : 51))+'" text-anchor="middle">'+esc(g.d.khi || "")+'</text>';
 
     /* quả: mỗi bé một quả treo trên cành, so le cho khỏi chồng chữ */
     var diem = g.be.map(function(c, j){
@@ -545,7 +552,8 @@ async function veCay(SB){
       '<div class="chu">Chương trình Kéo và Đẩy</div>'+
       '<h1>'+tongBe+' em nhỏ đang được đồng hành</h1>'+
       '<p class="gt">Chương trình vẽ lại tất cả thành một cái cây. Gốc rễ là Midu MenaQ7 và quỹ trách nhiệm xã hội nuôi chương trình. '+
-      'Mỗi cành là một chuyến đi về một tỉnh. Mỗi quả trên cành là một đứa trẻ. Bấm vào quả để mở hành trình riêng của con.</p>'+
+      'Mỗi cành là một chuyến đi về một tỉnh, cành thấp nhất là chuyến đầu tiên, đọc từ gốc lên là đi theo thời gian. '+
+      'Mỗi quả trên cành là một đứa trẻ. Bấm vào quả để mở hành trình riêng của con.</p>'+
     '</div></div><div class="vach"></div></section>'+
     '<div class="cay-khung">'+svg+'</div>'+
     '<div class="chu-giai"><span><i style="background:#DE7127"></i>mỗi quả là một em nhỏ, bấm để mở hành trình</span>'+
@@ -654,6 +662,20 @@ async function veChuyenVien(SB, slug){
     '<a class="nut" href="/cac-be">Xem tất cả các em nhỏ</a></section>';
 }
 function so2(v){ return String(v).replace(".", ","); }
+
+/* Xếp các mốc theo đúng ngày xảy ra. Mốc chưa ghi ngày thì nằm ngay sau
+   mốc trước nó trong quy trình, chứ không bị đẩy lên đầu. */
+function sapTheoNgay(ds){
+  var moc_so = function(x){
+    var m = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(String(x || ""));
+    return m ? Number(m[1] + m[2] + (m[3] || "00")) : null;
+  };
+  var co = ds.map(function(m, i){ return { m:m, i:i, k:moc_so(m.ngay) }; });
+  var truoc = 0;
+  co.forEach(function(x){ if (x.k) truoc = x.k; else x.k = truoc; });
+  co.sort(function(a, b){ return a.k === b.k ? a.i - b.i : a.k - b.k; });
+  return co.map(function(x){ return x.m; });
+}
 
 function thanh(nhan, co, chuan, dv){
   var pct = Math.max(6, Math.min(100, co/chuan*100));
