@@ -161,6 +161,8 @@
   .qua:hover circle.than-qua{r:17}
   .qua text{font-family:var(--sans);font-size:12.5px;font-weight:700;fill:var(--cam-toi);
     paint-order:stroke;stroke:#FDF2EA;stroke-width:3.5;stroke-linejoin:round}
+  .chu-nha{font-family:var(--sans);font-size:11.5px;font-weight:700;fill:#A2704A;
+    paint-order:stroke;stroke:#FDF2EA;stroke-width:3;stroke-linejoin:round}
   .qua.cho text{fill:var(--ink-4)}
   .nhan-dot{font-family:var(--dis);font-size:15px;font-weight:800;fill:var(--cam-dam);letter-spacing:.02em}
   .nhan-dot.so{font-size:11.5px;fill:#A2704A}
@@ -215,6 +217,10 @@
   .o-tinh{background:var(--trang);border:1px solid var(--vien);border-left:5px solid var(--cam);
     border-radius:var(--r);box-shadow:var(--bong);padding:18px 20px;margin-bottom:14px}
   .o-tinh h3{font-family:var(--dis);font-size:20px;color:var(--cam-toi);margin:0}
+  .cum-nha{background:var(--vang-nhat);border:1px solid var(--vang-vien);border-radius:var(--r-sm);
+    padding:12px 13px;margin-top:11px}
+  .cum-nha .dau{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
+    color:var(--vang-chu);margin-bottom:9px}
   .o-tinh .noi{font-size:13.5px;color:var(--ink-4);margin-top:2px}
 
   /* trang chuyên viên */
@@ -477,13 +483,19 @@ async function veCay(SB){
   datTenDau("Những em nhỏ được đồng hành");
   var t = await Promise.all([
     SB.from("dot").select("*").order("thu_tu"),
-    SB.from("ca").select("id,ten,slug,dot,dia_ban,de_xuat_boi,cong_khai").eq("cong_khai", true).order("id")
+    SB.from("ca").select("id,ten,slug,dot,dia_ban,de_xuat_boi,gia_dinh,cong_khai").eq("cong_khai", true).order("id")
   ]);
   var dot = t[0].data || [], ca = t[1].data || [];
   if (!ca.length) { khongThay("Chưa có em nhỏ nào được công bố", "Chương trình chưa công bố trường hợp nào."); return; }
 
   var nhom = dot.map(function(d){
-    return { d:d, be: ca.filter(function(c){ return c.dot === d.ma; }) };
+    var be = ca.filter(function(c){ return c.dot === d.ma; });
+    /* các bé cùng nhà xếp liền nhau để còn treo chung một cuống */
+    be.sort(function(a, b){
+      var ka = a.gia_dinh || ("~" + a.id), kb = b.gia_dinh || ("~" + b.id);
+      return ka === kb ? String(a.id).localeCompare(String(b.id)) : ka.localeCompare(kb);
+    });
+    return { d:d, be: be };
   }).filter(function(x){ return x.be.length; });
 
   var hep = (window.innerWidth || 1000) < 760;
@@ -582,10 +594,32 @@ async function veCay(SB){
     });
     var day = Math.max.apply(null, diem.map(function(d){ return d.y; })) + 38;
     var soHang = (hep && diem.length > 3) ? 3 : 2;
+    diem.forEach(function(d, j){ d.yQ = day + (j % soHang) * 42; });
+
+    /* anh chị em ruột: một cuống chung chia ra mấy quả */
+    var daVe = {};
+    diem.forEach(function(d){
+      if (!d.c.gia_dinh || daVe[d.c.gia_dinh]) return;
+      var nhaNay = diem.filter(function(x){ return x.c.gia_dinh === d.c.gia_dinh; });
+      if (nhaNay.length < 2) return;
+      daVe[d.c.gia_dinh] = true;
+      var xc = nhaNay.reduce(function(t, x){ return t + x.x; }, 0) / nhaNay.length;
+      var yc = nhaNay.reduce(function(t, x){ return t + x.y; }, 0) / nhaNay.length;
+      var yNut = yc + 24;
+      svg += '<path d="M '+xc+' '+yc+' L '+xc+' '+yNut+'" stroke="#8A3F11" stroke-width="3.5" stroke-linecap="round"></path>'+
+             '<circle cx="'+xc+'" cy="'+yNut+'" r="4" fill="#8A3F11"></circle>'+
+             '<text class="chu-nha" x="'+(xc - huong*50)+'" y="'+(yNut + 4)+'" text-anchor="middle">Một nhà</text>';
+      nhaNay.forEach(function(x){
+        svg += '<path d="M '+xc+' '+yNut+' C '+xc+' '+(yNut+18)+', '+x.x+' '+(x.yQ-32)+', '+x.x+' '+(x.yQ-13)+
+               '" stroke="#8A3F11" stroke-width="2.5" fill="none" stroke-linecap="round"></path>';
+        x.chung = true;
+      });
+    });
+
     diem.forEach(function(d, j){
-      var yQ = day + (j % soHang) * 42;
+      var yQ = d.yQ;
       svg += '<g class="qua" onclick="location.href=\'/be/'+esc(d.c.slug)+'\'" role="link" tabindex="0">'+
-        '<path d="M '+d.x+' '+d.y+' L '+d.x+' '+(yQ-13)+'" stroke="#8A3F11" stroke-width="2.5"></path>'+
+        (d.chung ? '' : '<path d="M '+d.x+' '+d.y+' L '+d.x+' '+(yQ-13)+'" stroke="#8A3F11" stroke-width="2.5"></path>')+
         '<ellipse cx="'+(d.x+8)+'" cy="'+(yQ-16)+'" rx="10" ry="5" fill="#3E9467" transform="rotate(-24 '+(d.x+8)+' '+(yQ-16)+')"></ellipse>'+
         '<circle class="than-qua" cx="'+d.x+'" cy="'+yQ+'" r="15" fill="url(#menQua)" stroke="#FFF7F0" stroke-width="3"></circle>'+
         '<ellipse cx="'+(d.x-4.5)+'" cy="'+(yQ-5)+'" rx="4.5" ry="2.8" fill="#FFFFFF" opacity=".5" transform="rotate(-32 '+(d.x-4.5)+' '+(yQ-5)+')"></ellipse>'+
@@ -617,6 +651,33 @@ async function veCay(SB){
     'Chương trình đi cùng con tính bằng năm, cho tới khi con đạt chuẩn.</p>'+
     '<a class="nut" href="/dang-ky.html">Giới thiệu một em nhỏ</a>'+
     '<a class="nut" href="/ban-do" style="background:var(--trang);color:var(--cam-dam);border:1px solid var(--cam-vien);margin-left:9px">Xem trên bản đồ Việt Nam</a></section>';
+}
+
+/* Gom các bé cùng nhà vào một cụm, để nhìn là biết mấy em là người một nhà. */
+function gomTheoNha(be){
+  var nha = [], le = [], da = {};
+  be.forEach(function(c){
+    if (c.gia_dinh) {
+      if (da[c.gia_dinh]) return;
+      var cung = be.filter(function(x){ return x.gia_dinh === c.gia_dinh; });
+      da[c.gia_dinh] = true;
+      if (cung.length > 1) { nha.push(cung); return; }
+    }
+    le.push(c);
+  });
+  var the = function(c){
+    return '<a class="mot-be" href="/be/'+esc(c.slug)+'">'+
+      '<div class="t">'+esc(c.ten)+'</div>'+
+      '<div class="d">'+esc([c.tuoi, c.dia_ban].filter(Boolean).join(" · "))+'</div>'+
+      '<div class="d" style="margin-top:7px;color:var(--cam-dam);font-weight:600">Xem hành trình →</div></a>';
+  };
+  var h = "";
+  nha.forEach(function(cung){
+    h += '<div class="cum-nha"><div class="dau">👨‍👩‍👧‍👦 '+cung.length+' em là người một nhà</div>'+
+         '<div class="dsbe">'+cung.map(the).join("")+'</div></div>';
+  });
+  if (le.length) h += '<div class="dsbe" style="margin-top:11px">'+le.map(the).join("")+'</div>';
+  return h;
 }
 
 /* ======================= TRANG BẢN ĐỒ ======================= */
@@ -685,14 +746,7 @@ async function veBanDo(SB){
       return '<section class="o-tinh" id="ds-'+khongDau(ten)+'">'+
         '<h3>'+esc(ten)+'</h3>'+
         '<div class="noi">'+o.be.length+' em nhỏ · '+o.dot.map(function(d){ return esc(d.khi || d.ten); }).join(", ")+'</div>'+
-        '<div class="dsbe" style="margin-top:11px">'+o.be.map(function(c){
-          var ae = c.gia_dinh ? ca.filter(function(x){ return x.gia_dinh === c.gia_dinh && x.id !== c.id; }) : [];
-          return '<a class="mot-be" href="/be/'+esc(c.slug)+'">'+
-            '<div class="t">'+esc(c.ten)+'</div>'+
-            '<div class="d">'+esc([c.tuoi, c.dia_ban].filter(Boolean).join(" · "))+'</div>'+
-            (ae.length ? '<div class="nha-nho">Cùng nhà với '+esc(ae.map(function(x){ return x.ten; }).join(", "))+'</div>' : '')+
-            '<div class="d" style="margin-top:7px;color:var(--cam-dam);font-weight:600">Xem hành trình →</div></a>';
-        }).join("")+'</div></section>';
+        gomTheoNha(o.be)+'</section>';
     }).join("")+
 
     '<section class="cuoi" style="margin-top:22px"><div class="nhan">Chương trình Kéo và Đẩy</div>'+
