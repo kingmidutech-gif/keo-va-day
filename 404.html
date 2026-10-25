@@ -161,8 +161,9 @@
   .qua:hover circle.than-qua{r:17}
   .qua text{font-family:var(--sans);font-size:12.5px;font-weight:700;fill:var(--cam-toi);
     paint-order:stroke;stroke:#FDF2EA;stroke-width:3.5;stroke-linejoin:round}
-  .chu-nha{font-family:var(--sans);font-size:11.5px;font-weight:700;fill:#A2704A;
-    paint-order:stroke;stroke:#FDF2EA;stroke-width:3;stroke-linejoin:round}
+  .chu-nha{font-family:var(--sans);font-size:13.5px;font-weight:800;fill:#8A3F11;
+    paint-order:stroke;stroke:#FDF2EA;stroke-width:5;stroke-linejoin:round}
+  @media(max-width:760px){ .chu-nha{font-size:17px;stroke-width:6} }
   .qua.cho text{fill:var(--ink-4)}
   .nhan-dot{font-family:var(--dis);font-size:15px;font-weight:800;fill:var(--cam-dam);letter-spacing:.02em}
   .nhan-dot.so{font-size:11.5px;fill:#A2704A}
@@ -194,17 +195,19 @@
     border:1px solid var(--vang-vien);border-radius:9px;padding:3px 9px;display:inline-block;margin-top:7px}
 
   /* bản đồ */
-  .bd-khung{background:linear-gradient(180deg,#F4FAFB 0%,var(--cam-nhat) 100%);
+  .bd-khung{background:linear-gradient(180deg,#E6F3F8 0%,#EFF8FA 60%,#F6FAFB 100%);
     border:1px solid var(--cam-vien);border-radius:26px;box-shadow:var(--bong);
     padding:16px 12px 10px;margin:24px 0 14px;overflow:hidden}
   .bd-khung svg{display:block;width:100%;height:auto}
-  .tinh{fill:#FBEFE4;stroke:#FFFFFF;stroke-width:1.1}
+  .tinh{fill:#F4E2CF;stroke:#FFFFFF;stroke-width:1.6}
   .tinh.co-be{stroke:#7A370F;stroke-width:2.2;stroke-linejoin:round;cursor:pointer}
   .tinh.co-be.t0{fill:#E8914A}
   .tinh.co-be.t1{fill:#F3B071}
   .tinh.co-be.t2{fill:#D97A33}
   .tinh.co-be:hover{fill:#C65F18}
-  .dao-chu{font-family:var(--sans);font-size:15px;font-weight:700;fill:#A2704A}
+  .o-dao{fill:#FFFFFF;fill-opacity:.55;stroke:#C99A6E;stroke-width:2;stroke-dasharray:9 7}
+  .dao-chu{font-family:var(--sans);font-size:17px;font-weight:700;fill:#8A3F11}
+  .dao-phu{font-family:var(--sans);font-size:14px;fill:#A2704A}
   .nhan-tinh{cursor:pointer}
   .nhan-tinh .ten{font-family:var(--dis);font-size:19px;font-weight:800;fill:var(--cam-toi)}
   .nhan-tinh .dem{font-family:var(--sans);font-size:15px;font-weight:600;fill:var(--cam-dam)}
@@ -511,8 +514,8 @@ async function veCay(SB){
   }).filter(function(x){ return x.be.length; });
 
   var hep = (window.innerWidth || 1000) < 760;
-  var W = hep ? 640 : 900;
-  var yNgon = 160, canhTren = 320;
+  var W = hep ? 700 : 1160;
+  var yNgon = 176, canhTren = 350;
   var yGoc = canhTren + 126 + (nhom.length - 1) * 208 + 120;
   var H = yGoc + 128;
   var xThan = W / 2;
@@ -535,8 +538,8 @@ async function veCay(SB){
   svg += '<circle cx="'+xThan+'" cy="'+(yNgon+10)+'" r="238" fill="url(#haoQuang)"></circle>';
 
   /* ---- tán lá: cụm tròn, vẽ trước để thân và cành nằm đè lên ---- */
-  [[0,-66,62,0],[-60,-48,70,1],[62,-50,72,2],[-126,-2,56,2],[126,-2,56,1],
-   [-88,34,78,0],[88,34,78,2],[0,2,118,1]].forEach(function(c){
+  [[0,-74,70,0],[-68,-54,78,1],[70,-56,80,2],[-142,-2,62,2],[142,-2,62,1],
+   [-99,38,86,0],[99,38,86,2],[0,2,132,1]].forEach(function(c){
     svg += '<circle cx="'+(xThan+c[0])+'" cy="'+(yNgon+c[1])+'" r="'+c[2]+'" fill="'+
            ["#2F7F55","#388D5F","#45A06D"][c[3]]+'"></circle>';
   });
@@ -572,7 +575,7 @@ async function veCay(SB){
     var yCanh = yGoc - 150 - i * 208;
     var huong = (i % 2 === 0) ? -1 : 1;
     var xDau = xThan + huong * 18;
-    var xCuoi = xThan + huong * Math.min(hep ? 246 : 338, (hep ? 126 : 164) + g.be.length * (hep ? 26 : 34));
+    var xCuoi = xThan + huong * Math.min(hep ? 286 : 470, (hep ? 140 : 196) + g.be.length * (hep ? 30 : 48));
     var yCuoi = yCanh - 126;
     var c1x = xThan + huong*120, c1y = yCanh, c2x = xCuoi - huong*60, c2y = yCuoi;
     var duong = "M "+xDau+" "+yCanh+" C "+c1x+" "+c1y+", "+c2x+" "+c2y+", "+xCuoi+" "+yCuoi;
@@ -591,7 +594,7 @@ async function veCay(SB){
     var phan = String(g.d.ten).split(/\s*·\s*/);
     var nCao = hep ? 72 : 56;
     var nRong = Math.max(hep ? 152 : 104, String(phan[1] || "").length * (hep ? 12 : 9) + (hep ? 46 : 36));
-    var nY = yCuoi - nCao - 14;
+    var nY = yCuoi - nCao - 26;
     svg += '<path d="M '+xCuoi+' '+(yCuoi - 4)+' L '+xCuoi+' '+(nY + nCao)+'" stroke="#C99A6E" stroke-width="2"></path>'+
            '<rect x="'+(xCuoi - nRong/2)+'" y="'+nY+'" width="'+nRong+'" height="'+nCao+'" rx="15" fill="#FFFFFF" opacity=".86"></rect>'+
            '<text class="nhan-dot so" x="'+xCuoi+'" y="'+(nY + (hep ? 24 : 18))+'" text-anchor="middle">'+esc(phan[0])+'</text>'+
@@ -605,8 +608,8 @@ async function veCay(SB){
       return { c:c, x:pt.x, y:pt.y };
     });
     var day = Math.max.apply(null, diem.map(function(d){ return d.y; })) + 38;
-    var soHang = (hep && diem.length > 3) ? 3 : 2;
-    diem.forEach(function(d, j){ d.yQ = day + (j % soHang) * 42; });
+    var soHang = (diem.length > 3) ? 3 : 2;
+    diem.forEach(function(d, j){ d.yQ = day + (j % soHang) * 46; });
 
     /* anh chị em ruột: một cuống chung chia ra mấy quả */
     var daVe = {};
@@ -620,7 +623,7 @@ async function veCay(SB){
       var yNut = yc + 24;
       svg += '<path d="M '+xc+' '+yc+' L '+xc+' '+yNut+'" stroke="#8A3F11" stroke-width="3.5" stroke-linecap="round"></path>'+
              '<circle cx="'+xc+'" cy="'+yNut+'" r="4" fill="#8A3F11"></circle>'+
-             '<text class="chu-nha" x="'+(xc - huong*54)+'" y="'+(yNut + 4)+'" text-anchor="middle">'+
+             '<text class="chu-nha" x="'+xc+'" y="'+(yNut + 21)+'" text-anchor="middle">'+
              esc(cumAnhChiEm(nhaNay.map(function(x){ return x.c; })))+'</text>';
       nhaNay.forEach(function(x){
         svg += '<path d="M '+xc+' '+yNut+' C '+xc+' '+(yNut+18)+', '+x.x+' '+(x.yQ-32)+', '+x.x+' '+(x.yQ-13)+
@@ -719,7 +722,11 @@ async function veBanDo(SB){
   });
   var dsTinh = Object.keys(theoTinh);
 
-  var svg = '<svg viewBox="0 0 '+bd.w+' '+bd.h+'" role="img" aria-label="Bản đồ Việt Nam, đánh dấu các tỉnh có em nhỏ được chương trình đồng hành">';
+  var hepBD = (window.innerWidth || 1000) < 760;
+  var co = hepBD ? 2.5 : 1;          // màn hẹp thì phóng mọi chữ và nhãn lên
+  var LE = bd.w * 0.34;              // dải biển bên phải, chỗ đặt ô phụ và nhãn
+  var WT = bd.w + LE;
+  var svg = '<svg viewBox="0 0 '+WT+' '+bd.h+'" role="img" aria-label="Bản đồ Việt Nam, đánh dấu các tỉnh có em nhỏ được chương trình đồng hành">';
 
   /* các tỉnh */
   Object.keys(bd.tinh).forEach(function(ten){
@@ -730,13 +737,30 @@ async function veBanDo(SB){
   });
 
   /* hai quần đảo */
-  var nhanDao = { "hoang-sa": "Quần đảo Hoàng Sa", "truong-sa": "Quần đảo Trường Sa" };
-  Object.keys(bd.dao || {}).forEach(function(nh){
-    var o = bd.dao[nh], k = o.khung;
+  /* Hai quần đảo đặt trong ô phụ, như bản đồ hành chính vẫn làm:
+     đất liền giữ nguyên tỉ lệ và chiếm trọn khung, quần đảo thu vào ô nhỏ ở phía biển. */
+  var oDao = {
+    "hoang-sa":  { x: bd.w + LE*0.10, y: bd.h*0.47, w: LE*0.80, h: bd.h*0.075,
+                   ten:"Quần đảo Hoàng Sa", phu:"thành phố Đà Nẵng" },
+    "truong-sa": { x: bd.w + LE*0.04, y: bd.h*0.70, w: LE*0.92, h: bd.h*0.135,
+                   ten:"Quần đảo Trường Sa", phu:"tỉnh Khánh Hòa" }
+  };
+  Object.keys(oDao).forEach(function(nh){
+    var o = bd.dao && bd.dao[nh]; if (!o) return;
+    var khung = oDao[nh], k = o.khung;
+    var rongDo = Math.max(0.01, k[2]-k[0]), caoDo = Math.max(0.01, k[3]-k[1]);
+    var dem = 16;
+    var ty = Math.min((khung.w - dem*2) / rongDo, (khung.h - dem*2) / caoDo);
+    var lechX = khung.x + (khung.w - rongDo*ty)/2;
+    var lechY = khung.y + (khung.h - caoDo*ty)/2;
+
+    svg += '<rect class="o-dao" x="'+khung.x+'" y="'+khung.y+'" width="'+khung.w+'" height="'+khung.h+'" rx="14"></rect>';
     (o.diem || []).forEach(function(v){
-      svg += '<circle cx="'+v[0]+'" cy="'+v[1]+'" r="2.6" fill="#B4551A" opacity=".75"></circle>';
+      var x = lechX + (v[0]-k[0])*ty, y = lechY + (k[3]-v[1])*ty;
+      svg += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="2.6" fill="#B4551A" opacity=".8"></circle>';
     });
-    svg += '<text class="dao-chu" x="'+(k[0]+k[2]/2)+'" y="'+(k[1]+4)+'" text-anchor="middle">'+esc(nhanDao[nh])+'</text>';
+    svg += '<text class="dao-chu" x="'+(khung.x + khung.w/2)+'" y="'+(khung.y - 26*co)+'" text-anchor="middle" font-size="'+(17*co)+'">'+esc(khung.ten)+'</text>'+
+           '<text class="dao-phu" x="'+(khung.x + khung.w/2)+'" y="'+(khung.y - 6*co)+'" text-anchor="middle" font-size="'+(14*co)+'">'+esc(khung.phu)+'</text>';
   });
 
   svg += '<g id="nhanTinh"></g></svg>';
@@ -779,18 +803,20 @@ async function veBanDo(SB){
     var tm = (bd.tam || {})[ten];
     var cx = tm ? tm[0] : b.x + b.width/2;
     var cy = tm ? tm[1] : b.y + b.height/2;
-    var x = Math.min(cx + Math.max(b.width/2, 40) + 16, bd.w - 250);
+    var rong = Math.max(190*co, ten.length * 13*co + 104*co);
+    var raPhai = (cx + b.width/2 + 20 + rong) <= WT - 8;
+    var x = raPhai ? (cx + Math.max(b.width/2, 30) + 20*co) : (cx - Math.max(b.width/2, 30) - 20*co - rong);
     var y = cy;
-    while (da.some(function(v){ return Math.abs(v - y) < 54; })) y += 54;
+    while (da.some(function(v){ return Math.abs(v - y) < 62*co; })) y += 62*co;
     da.push(y);
-    var rong = Math.max(170, ten.length * 12 + 96);
+    var noiX = raPhai ? x - 10 : x + rong + 10;
     nhom.insertAdjacentHTML("beforeend",
       '<g class="nhan-tinh" onclick="document.getElementById(\'ds-'+khongDau(ten)+'\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" role="link" tabindex="0">'+
-      '<path d="M '+cx+' '+cy+' L '+(x-10)+' '+y+'" stroke="#C07A3E" stroke-width="2"></path>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="8.5" fill="#6E3009" stroke="#FFFFFF" stroke-width="2.5"></circle>'+
-      '<rect x="'+x+'" y="'+(y-27)+'" width="'+rong+'" height="54" rx="16" fill="#FFFFFF" opacity=".92"></rect>'+
-      '<text class="ten" x="'+(x+16)+'" y="'+(y-4)+'">'+esc(ten)+'</text>'+
-      '<text class="dem" x="'+(x+16)+'" y="'+(y+17)+'">'+theoTinh[ten].be.length+' em nhỏ</text></g>');
+      '<path d="M '+cx+' '+cy+' L '+noiX+' '+y+'" stroke="#C07A3E" stroke-width="'+(2.4*co)+'"></path>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+(9*co)+'" fill="#6E3009" stroke="#FFFFFF" stroke-width="'+(3*co)+'"></circle>'+
+      '<rect x="'+x+'" y="'+(y-30*co)+'" width="'+rong+'" height="'+(60*co)+'" rx="'+(17*co)+'" fill="#FFFFFF" opacity=".95" stroke="#EDD6BF" stroke-width="1.5"></rect>'+
+      '<text class="ten" x="'+(x+18*co)+'" y="'+(y-5*co)+'" font-size="'+(19*co)+'">'+esc(ten)+'</text>'+
+      '<text class="dem" x="'+(x+18*co)+'" y="'+(y+18*co)+'" font-size="'+(15*co)+'">'+theoTinh[ten].be.length+' em nhỏ</text></g>');
   });
 
   /* nơi chương trình bắt đầu: văn phòng Midu MenaQ7 */
@@ -802,19 +828,21 @@ async function veBanDo(SB){
 function ghimNoi(nhom, bd, lon, lat, ten, dia, daDung){
   var c = bd.chieu;
   if (!c) return;
+  var co = ((window.innerWidth || 1000) < 760) ? 2.5 : 1;
   var x = (lon - c.lon0) * c.k * c.he, y = (c.lat1 - lat) * c.he;
-  var nx = Math.min(x + 34, bd.w - 330), ny = y;
-  while ((daDung || []).some(function(v){ return Math.abs(v - ny) < 58; })) ny -= 58;
-  var rong = Math.max(300, ten.length * 11 + 60);
+  var rong = Math.max(300*co, ten.length * 11*co + 60*co);
+  var raPhai2 = (x + 34*co + rong) <= (bd.w + bd.w*0.34) - 8;
+  var nx = raPhai2 ? x + 34*co : x - 34*co - rong, ny = y;
+  while ((daDung || []).some(function(v){ return Math.abs(v - ny) < 58*co; })) ny -= 58*co;
   nhom.insertAdjacentHTML("beforeend",
     '<g class="ghim-vp">'+
-      '<path d="M '+x+' '+y+' L '+(nx-10)+' '+ny+'" stroke="#6D3FA3" stroke-width="2"></path>'+
-      '<path d="M '+x+' '+(y+4)+' C '+(x-13)+' '+(y-10)+', '+(x-11)+' '+(y-28)+', '+x+' '+(y-28)+
-        ' C '+(x+11)+' '+(y-28)+', '+(x+13)+' '+(y-10)+', '+x+' '+(y+4)+' Z" fill="#6D3FA3"></path>'+
-      '<circle cx="'+x+'" cy="'+(y-18)+'" r="5" fill="#FFFFFF"></circle>'+
-      '<rect x="'+nx+'" y="'+(ny-29)+'" width="'+rong+'" height="58" rx="17" fill="#FFFFFF" opacity=".93" stroke="#D9C7EC" stroke-width="1.5"></rect>'+
-      '<text class="ten" x="'+(nx+17)+'" y="'+(ny-5)+'">'+esc(ten)+'</text>'+
-      '<text class="dia" x="'+(nx+17)+'" y="'+(ny+16)+'">'+esc(dia)+'</text>'+
+      '<path d="M '+x+' '+y+' L '+(raPhai2 ? nx-10*co : nx+rong+10*co)+' '+ny+'" stroke="#6D3FA3" stroke-width="'+(2*co)+'"></path>'+
+      '<path d="M '+x+' '+(y+4*co)+' C '+(x-13*co)+' '+(y-10*co)+', '+(x-11*co)+' '+(y-28*co)+', '+x+' '+(y-28*co)+
+        ' C '+(x+11*co)+' '+(y-28*co)+', '+(x+13*co)+' '+(y-10*co)+', '+x+' '+(y+4*co)+' Z" fill="#6D3FA3"></path>'+
+      '<circle cx="'+x+'" cy="'+(y-18*co)+'" r="'+(5*co)+'" fill="#FFFFFF"></circle>'+
+      '<rect x="'+nx+'" y="'+(ny-29*co)+'" width="'+rong+'" height="'+(58*co)+'" rx="'+(17*co)+'" fill="#FFFFFF" opacity=".93" stroke="#D9C7EC" stroke-width="1.5"></rect>'+
+      '<text class="ten" x="'+(nx+17*co)+'" y="'+(ny-5*co)+'" font-size="'+(18*co)+'">'+esc(ten)+'</text>'+
+      '<text class="dia" x="'+(nx+17*co)+'" y="'+(ny+16*co)+'" font-size="'+(13.5*co)+'">'+esc(dia)+'</text>'+
     '</g>');
 }
 
