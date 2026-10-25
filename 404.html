@@ -827,6 +827,7 @@ async function veBanDo(SB){
     var rong = Math.max(ten.length * 11.8, chuDem.length * 8.3) * co + 34*co;
     var raPhai = (cx + b.width/2 + 20 + rong) <= WT - 8;
     var x = raPhai ? (cx + Math.max(b.width/2, 30) + 20*co) : (cx - Math.max(b.width/2, 30) - 20*co - rong);
+    x = Math.max(10, Math.min(x, WT - rong - 10));
     var y = cy;
     while (da.some(function(v){ return Math.abs(v - y) < 62*co; })) y += 62*co;
     da.push(y);
@@ -842,7 +843,7 @@ async function veBanDo(SB){
 
   /* nơi chương trình bắt đầu: văn phòng Midu MenaQ7 */
   ghimNoi(nhom, bd, 105.7760, 20.9735, "Văn phòng Midu MenaQ7",
-          "Số 1, Galaxy 1, Ngân Hà Vạn Phúc, Hà Đông", da);
+          hepBD ? "Galaxy 1, Hà Đông, Hà Nội" : "Số 1, Galaxy 1, Ngân Hà Vạn Phúc, Hà Đông", da);
 }
 
 /* Ghim một địa điểm theo kinh độ vĩ độ thật. Màu xanh, khác hẳn màu của các con. */
@@ -850,20 +851,25 @@ function ghimNoi(nhom, bd, lon, lat, ten, dia, daDung){
   var c = bd.chieu;
   if (!c) return;
   var co = ((window.innerWidth || 1000) < 760) ? 2.5 : 1;
+  var WT = bd.w + bd.w*0.34;
   var x = (lon - c.lon0) * c.k * c.he, y = (c.lat1 - lat) * c.he;
-  var rong = (Math.max(ten.length * 11.2, dia.length * 7.3) + 34) * co;
-  var raPhai2 = (x + 34*co + rong) <= (bd.w + bd.w*0.34) - 8;
-  var nx = raPhai2 ? x + 34*co : x - 34*co - rong, ny = y;
-  while ((daDung || []).some(function(v){ return Math.abs(v - ny) < 58*co; })) ny -= 58*co;
+  var coN = co;
+  var rong = (Math.max(ten.length * 11.2, dia.length * 7.3) + 34) * coN;
+  if (rong > WT - 24) { coN = coN * (WT - 24) / rong; rong = WT - 24; }   // nhãn to quá thì thu lại
+  var raPhai2 = (x + 34*coN + rong) <= WT - 12;
+  var nx = raPhai2 ? x + 34*coN : x - 34*coN - rong;
+  nx = Math.max(12, Math.min(nx, WT - rong - 12));                        // kẹp lại cho khỏi lọt ra ngoài
+  var ny = y;
+  while ((daDung || []).some(function(v){ return Math.abs(v - ny) < 58*coN; })) ny -= 58*coN;
   nhom.insertAdjacentHTML("beforeend",
     '<g class="ghim-vp">'+
-      '<path d="M '+x+' '+y+' L '+(raPhai2 ? nx-10*co : nx+rong+10*co)+' '+ny+'" stroke="#6D3FA3" stroke-width="'+(2*co)+'"></path>'+
+      '<path d="M '+x+' '+y+' L '+(raPhai2 ? nx-10*coN : nx+rong+10*coN)+' '+ny+'" stroke="#6D3FA3" stroke-width="'+(2*coN)+'"></path>'+
       '<path d="M '+x+' '+(y+4*co)+' C '+(x-13*co)+' '+(y-10*co)+', '+(x-11*co)+' '+(y-28*co)+', '+x+' '+(y-28*co)+
         ' C '+(x+11*co)+' '+(y-28*co)+', '+(x+13*co)+' '+(y-10*co)+', '+x+' '+(y+4*co)+' Z" fill="#6D3FA3"></path>'+
       '<circle cx="'+x+'" cy="'+(y-18*co)+'" r="'+(5*co)+'" fill="#FFFFFF"></circle>'+
-      '<rect x="'+nx+'" y="'+(ny-26*co)+'" width="'+rong+'" height="'+(52*co)+'" rx="'+(15*co)+'" fill="#FFFFFF" opacity=".95" stroke="#D9C7EC" stroke-width="1.5"></rect>'+
-      '<text class="ten" x="'+(nx+17*co)+'" y="'+(ny-4*co)+'" font-size="'+(18*co)+'">'+esc(ten)+'</text>'+
-      '<text class="dia" x="'+(nx+17*co)+'" y="'+(ny+16*co)+'" font-size="'+(13*co)+'">'+esc(dia)+'</text>'+
+      '<rect x="'+nx+'" y="'+(ny-26*coN)+'" width="'+rong+'" height="'+(52*coN)+'" rx="'+(15*coN)+'" fill="#FFFFFF" opacity=".95" stroke="#D9C7EC" stroke-width="1.5"></rect>'+
+      '<text class="ten" x="'+(nx+17*coN)+'" y="'+(ny-4*coN)+'" font-size="'+(18*coN)+'">'+esc(ten)+'</text>'+
+      '<text class="dia" x="'+(nx+17*coN)+'" y="'+(ny+16*coN)+'" font-size="'+(13*coN)+'">'+esc(dia)+'</text>'+
     '</g>');
 }
 
