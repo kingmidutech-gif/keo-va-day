@@ -161,9 +161,8 @@
   .qua:hover circle.than-qua{r:17}
   .qua text{font-family:var(--sans);font-size:12.5px;font-weight:700;fill:var(--cam-toi);
     paint-order:stroke;stroke:#FDF2EA;stroke-width:3.5;stroke-linejoin:round}
-  .chu-nha{font-family:var(--sans);font-size:13.5px;font-weight:800;fill:#8A3F11;
-    paint-order:stroke;stroke:#FDF2EA;stroke-width:5;stroke-linejoin:round}
-  @media(max-width:760px){ .chu-nha{font-size:17px;stroke-width:6} }
+  .chu-nha{font-family:var(--sans);font-size:13px;font-weight:800;fill:#8A3F11}
+  @media(max-width:760px){ .chu-nha{font-size:17px} }
   .qua.cho text{fill:var(--ink-4)}
   .nhan-dot{font-family:var(--dis);font-size:15px;font-weight:800;fill:var(--cam-dam);letter-spacing:.02em}
   .nhan-dot.so{font-size:11.5px;fill:#A2704A}
@@ -622,9 +621,19 @@ async function veCay(SB){
       var yc = nhaNay.reduce(function(t, x){ return t + x.y; }, 0) / nhaNay.length;
       var yNut = yc + 24;
       svg += '<path d="M '+xc+' '+yc+' L '+xc+' '+yNut+'" stroke="#8A3F11" stroke-width="3.5" stroke-linecap="round"></path>'+
-             '<circle cx="'+xc+'" cy="'+yNut+'" r="4" fill="#8A3F11"></circle>'+
-             '<text class="chu-nha" x="'+xc+'" y="'+(yNut + 21)+'" text-anchor="middle">'+
-             esc(cumAnhChiEm(nhaNay.map(function(x){ return x.c; })))+'</text>';
+             '<circle cx="'+xc+'" cy="'+yNut+'" r="4" fill="#8A3F11"></circle>';
+      /* nhãn dán sát ngay trên cặp quả, để nhìn là biết nhóm này gồm ai */
+      var xMin = Math.min.apply(null, nhaNay.map(function(x){ return x.x; }));
+      var xMax = Math.max.apply(null, nhaNay.map(function(x){ return x.x; }));
+      var yTren = Math.min.apply(null, nhaNay.map(function(x){ return x.yQ; }));
+      var chuNha = cumAnhChiEm(nhaNay.map(function(x){ return x.c; }));
+      var rongNhan = chuNha.length * (hep ? 9.6 : 7.4) + 20;
+      var xNhan = (xMin + xMax) / 2, yNhan = yTren - 26;
+      svg += '<path d="M '+xMin+' '+(yTren-17)+' L '+xMin+' '+(yNhan+4)+
+             ' M '+xMax+' '+(yTren-17)+' L '+xMax+' '+(yNhan+4)+
+             ' M '+xMin+' '+(yNhan+4)+' L '+xMax+' '+(yNhan+4)+'" stroke="#C99A6E" stroke-width="2" fill="none"></path>'+
+             '<rect x="'+(xNhan-rongNhan/2)+'" y="'+(yNhan-13)+'" width="'+rongNhan+'" height="23" rx="11" fill="#FFF3E6" stroke="#E8C3A0" stroke-width="1.4"></rect>'+
+             '<text class="chu-nha" x="'+xNhan+'" y="'+(yNhan+4)+'" text-anchor="middle">'+esc(chuNha)+'</text>';
       nhaNay.forEach(function(x){
         svg += '<path d="M '+xc+' '+yNut+' C '+xc+' '+(yNut+18)+', '+x.x+' '+(x.yQ-32)+', '+x.x+' '+(x.yQ-13)+
                '" stroke="#8A3F11" stroke-width="2.5" fill="none" stroke-linecap="round"></path>';
@@ -803,7 +812,8 @@ async function veBanDo(SB){
     var tm = (bd.tam || {})[ten];
     var cx = tm ? tm[0] : b.x + b.width/2;
     var cy = tm ? tm[1] : b.y + b.height/2;
-    var rong = Math.max(190*co, ten.length * 13*co + 104*co);
+    var chuDem = theoTinh[ten].be.length + " em nhỏ";
+    var rong = Math.max(ten.length * 11.8, chuDem.length * 8.3) * co + 34*co;
     var raPhai = (cx + b.width/2 + 20 + rong) <= WT - 8;
     var x = raPhai ? (cx + Math.max(b.width/2, 30) + 20*co) : (cx - Math.max(b.width/2, 30) - 20*co - rong);
     var y = cy;
@@ -814,14 +824,14 @@ async function veBanDo(SB){
       '<g class="nhan-tinh" onclick="document.getElementById(\'ds-'+khongDau(ten)+'\').scrollIntoView({behavior:\'smooth\',block:\'center\'})" role="link" tabindex="0">'+
       '<path d="M '+cx+' '+cy+' L '+noiX+' '+y+'" stroke="#C07A3E" stroke-width="'+(2.4*co)+'"></path>'+
       '<circle cx="'+cx+'" cy="'+cy+'" r="'+(9*co)+'" fill="#6E3009" stroke="#FFFFFF" stroke-width="'+(3*co)+'"></circle>'+
-      '<rect x="'+x+'" y="'+(y-30*co)+'" width="'+rong+'" height="'+(60*co)+'" rx="'+(17*co)+'" fill="#FFFFFF" opacity=".95" stroke="#EDD6BF" stroke-width="1.5"></rect>'+
-      '<text class="ten" x="'+(x+18*co)+'" y="'+(y-5*co)+'" font-size="'+(19*co)+'">'+esc(ten)+'</text>'+
-      '<text class="dem" x="'+(x+18*co)+'" y="'+(y+18*co)+'" font-size="'+(15*co)+'">'+theoTinh[ten].be.length+' em nhỏ</text></g>');
+      '<rect x="'+x+'" y="'+(y-26*co)+'" width="'+rong+'" height="'+(52*co)+'" rx="'+(15*co)+'" fill="#FFFFFF" opacity=".96" stroke="#EDD6BF" stroke-width="1.5"></rect>'+
+      '<text class="ten" x="'+(x+17*co)+'" y="'+(y-4*co)+'" font-size="'+(19*co)+'">'+esc(ten)+'</text>'+
+      '<text class="dem" x="'+(x+17*co)+'" y="'+(y+16*co)+'" font-size="'+(14.5*co)+'">'+esc(chuDem)+'</text></g>');
   });
 
   /* nơi chương trình bắt đầu: văn phòng Midu MenaQ7 */
   ghimNoi(nhom, bd, 105.7760, 20.9735, "Văn phòng Midu MenaQ7",
-          "Số 1, Galaxy 1, Ngân Hà Vạn Phúc, Hà Đông, Hà Nội", da);
+          "Số 1, Galaxy 1, Ngân Hà Vạn Phúc, Hà Đông", da);
 }
 
 /* Ghim một địa điểm theo kinh độ vĩ độ thật. Màu xanh, khác hẳn màu của các con. */
@@ -830,7 +840,7 @@ function ghimNoi(nhom, bd, lon, lat, ten, dia, daDung){
   if (!c) return;
   var co = ((window.innerWidth || 1000) < 760) ? 2.5 : 1;
   var x = (lon - c.lon0) * c.k * c.he, y = (c.lat1 - lat) * c.he;
-  var rong = Math.max(300*co, ten.length * 11*co + 60*co);
+  var rong = (Math.max(ten.length * 11.2, dia.length * 7.3) + 34) * co;
   var raPhai2 = (x + 34*co + rong) <= (bd.w + bd.w*0.34) - 8;
   var nx = raPhai2 ? x + 34*co : x - 34*co - rong, ny = y;
   while ((daDung || []).some(function(v){ return Math.abs(v - ny) < 58*co; })) ny -= 58*co;
@@ -840,9 +850,9 @@ function ghimNoi(nhom, bd, lon, lat, ten, dia, daDung){
       '<path d="M '+x+' '+(y+4*co)+' C '+(x-13*co)+' '+(y-10*co)+', '+(x-11*co)+' '+(y-28*co)+', '+x+' '+(y-28*co)+
         ' C '+(x+11*co)+' '+(y-28*co)+', '+(x+13*co)+' '+(y-10*co)+', '+x+' '+(y+4*co)+' Z" fill="#6D3FA3"></path>'+
       '<circle cx="'+x+'" cy="'+(y-18*co)+'" r="'+(5*co)+'" fill="#FFFFFF"></circle>'+
-      '<rect x="'+nx+'" y="'+(ny-29*co)+'" width="'+rong+'" height="'+(58*co)+'" rx="'+(17*co)+'" fill="#FFFFFF" opacity=".93" stroke="#D9C7EC" stroke-width="1.5"></rect>'+
-      '<text class="ten" x="'+(nx+17*co)+'" y="'+(ny-5*co)+'" font-size="'+(18*co)+'">'+esc(ten)+'</text>'+
-      '<text class="dia" x="'+(nx+17*co)+'" y="'+(ny+16*co)+'" font-size="'+(13.5*co)+'">'+esc(dia)+'</text>'+
+      '<rect x="'+nx+'" y="'+(ny-26*co)+'" width="'+rong+'" height="'+(52*co)+'" rx="'+(15*co)+'" fill="#FFFFFF" opacity=".95" stroke="#D9C7EC" stroke-width="1.5"></rect>'+
+      '<text class="ten" x="'+(nx+17*co)+'" y="'+(ny-4*co)+'" font-size="'+(18*co)+'">'+esc(ten)+'</text>'+
+      '<text class="dia" x="'+(nx+17*co)+'" y="'+(ny+16*co)+'" font-size="'+(13*co)+'">'+esc(dia)+'</text>'+
     '</g>');
 }
 
