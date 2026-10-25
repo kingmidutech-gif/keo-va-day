@@ -322,9 +322,10 @@ function veTrang(c, moc, doLai, bai, cungNha){
 
   /* anh chị em cùng nhà */
   if (cungNha && cungNha.length) {
-    h += '<section class="nha"><div class="dau">👨‍👩‍👧‍👦 Cùng một nhà</div>'+
+    h += '<section class="nha"><div class="dau">👨‍👩‍👧‍👦 '+esc(cumAnhChiEm([c].concat(cungNha)))+'</div>'+
       '<p>'+esc(c.ten)+' và '+esc(cungNha.map(function(x){ return x.ten; }).join(", "))+
-      ' là người một nhà, cùng được chương trình nhận đồng hành. Mỗi em một hồ sơ riêng, một phác đồ riêng.</p>'+
+      ' là '+esc(cumAnhChiEm([c].concat(cungNha), true))+' ruột, cùng được chương trình nhận đồng hành. '+
+      'Mỗi em một hồ sơ riêng, một phác đồ riêng.</p>'+
       '<div class="ds">'+cungNha.map(function(x){
         return '<a href="/be/'+esc(x.slug)+'">'+esc(x.ten)+(x.tuoi ? ' · '+esc(x.tuoi) : '')+' →</a>';
       }).join("")+'</div></section>';
@@ -468,6 +469,17 @@ function veConDuong(){
     '<path class="tim-duong" d="'+d+'"></path>';
 }
 
+/* Gọi đúng: hai chị em, hai anh em, ba anh em, hay anh chị em khi có cả trai lẫn gái. */
+var SO_CHU = ["", "Một", "Hai", "Ba", "Bốn", "Năm", "Sáu", "Bảy"];
+function cumAnhChiEm(ds, thuong){
+  var gt = ds.map(function(x){ return x.gioi_tinh; });
+  var coNam = gt.indexOf("nam") >= 0, coNu = gt.indexOf("nu") >= 0;
+  var tu = (coNam && coNu) ? "anh chị em" : (coNu ? "chị em" : "anh em");
+  var so = SO_CHU[ds.length] || String(ds.length);
+  var ra = so + " " + tu;
+  return thuong ? ra.toLowerCase() : ra;
+}
+
 /* ---------- bỏ dấu để so khớp tên chuyên viên ---------- */
 function khongDau(x){
   return String(x||"").toLowerCase()
@@ -483,7 +495,7 @@ async function veCay(SB){
   datTenDau("Những em nhỏ được đồng hành");
   var t = await Promise.all([
     SB.from("dot").select("*").order("thu_tu"),
-    SB.from("ca").select("id,ten,slug,dot,dia_ban,de_xuat_boi,gia_dinh,cong_khai").eq("cong_khai", true).order("id")
+    SB.from("ca").select("id,ten,slug,dot,dia_ban,de_xuat_boi,gia_dinh,gioi_tinh,cong_khai").eq("cong_khai", true).order("id")
   ]);
   var dot = t[0].data || [], ca = t[1].data || [];
   if (!ca.length) { khongThay("Chưa có em nhỏ nào được công bố", "Chương trình chưa công bố trường hợp nào."); return; }
@@ -608,7 +620,8 @@ async function veCay(SB){
       var yNut = yc + 24;
       svg += '<path d="M '+xc+' '+yc+' L '+xc+' '+yNut+'" stroke="#8A3F11" stroke-width="3.5" stroke-linecap="round"></path>'+
              '<circle cx="'+xc+'" cy="'+yNut+'" r="4" fill="#8A3F11"></circle>'+
-             '<text class="chu-nha" x="'+(xc - huong*50)+'" y="'+(yNut + 4)+'" text-anchor="middle">Một nhà</text>';
+             '<text class="chu-nha" x="'+(xc - huong*54)+'" y="'+(yNut + 4)+'" text-anchor="middle">'+
+             esc(cumAnhChiEm(nhaNay.map(function(x){ return x.c; })))+'</text>';
       nhaNay.forEach(function(x){
         svg += '<path d="M '+xc+' '+yNut+' C '+xc+' '+(yNut+18)+', '+x.x+' '+(x.yQ-32)+', '+x.x+' '+(x.yQ-13)+
                '" stroke="#8A3F11" stroke-width="2.5" fill="none" stroke-linecap="round"></path>';
@@ -673,7 +686,7 @@ function gomTheoNha(be){
   };
   var h = "";
   nha.forEach(function(cung){
-    h += '<div class="cum-nha"><div class="dau">👨‍👩‍👧‍👦 '+cung.length+' em là người một nhà</div>'+
+    h += '<div class="cum-nha"><div class="dau">👨‍👩‍👧‍👦 '+esc(cumAnhChiEm(cung))+' ruột</div>'+
          '<div class="dsbe">'+cung.map(the).join("")+'</div></div>';
   });
   if (le.length) h += '<div class="dsbe" style="margin-top:11px">'+le.map(the).join("")+'</div>';
@@ -687,7 +700,7 @@ async function veBanDo(SB){
 
   var t = await Promise.all([
     SB.from("dot").select("*").order("thu_tu"),
-    SB.from("ca").select("id,ten,slug,dot,dia_ban,tuoi,gia_dinh,cong_khai").eq("cong_khai", true).order("id"),
+    SB.from("ca").select("id,ten,slug,dot,dia_ban,tuoi,gia_dinh,gioi_tinh,cong_khai").eq("cong_khai", true).order("id"),
     fetch("/ban-do-vn.json").then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
   ]);
   var dot = t[0].data || [], ca = t[1].data || [], bd = t[2];
@@ -963,7 +976,7 @@ function duongDan(){
       SB.from("tai_danh_gia").select("*").eq("ca_id", c.id).order("ngay"),
       SB.from("truyen_thong").select("*").eq("ca_id", c.id).order("ngay", {ascending:false}),
       c.gia_dinh
-        ? SB.from("ca").select("id,ten,slug,tuoi,cong_khai").eq("gia_dinh", c.gia_dinh).eq("cong_khai", true)
+        ? SB.from("ca").select("id,ten,slug,tuoi,gioi_tinh,cong_khai").eq("gia_dinh", c.gia_dinh).eq("cong_khai", true)
         : Promise.resolve({ data: [] })
     ]);
     veTrang(c, t[0].data || [], t[1].data || [], t[2].data || [],
