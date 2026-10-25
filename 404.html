@@ -177,6 +177,8 @@
   }
   .chu-giai{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:4px;font-size:13px;color:var(--ink-3)}
   .chu-giai i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+  .nha-liet-ke{text-align:center;font-size:14.5px;color:var(--ink-3);margin:2px auto 4px;max-width:62ch;line-height:1.6}
+  .nha-liet-ke b{color:var(--cam-toi)}
 
   /* anh chị em cùng nhà */
   .nha{background:var(--vang-nhat);border:1px solid var(--vang-vien);border-radius:var(--r);
@@ -519,7 +521,7 @@ async function veCay(SB){
   var H = yGoc + 128;
   var xThan = W / 2;
 
-  var svg = '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Cây của chương trình Kéo và Đẩy">';
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Tất cả các em nhỏ chương trình đang đồng hành, vẽ thành một cái cây">';
 
   /* ---- màu và chất liệu ---- */
   svg +=
@@ -606,9 +608,10 @@ async function veCay(SB){
       var pt = diemTrenCanh(xDau, yCanh, c1x, c1y, c2x, c2y, xCuoi, yCuoi, tyLe);
       return { c:c, x:pt.x, y:pt.y };
     });
-    var day = Math.max.apply(null, diem.map(function(d){ return d.y; })) + 38;
+    /* treo quả thấp hơn chỗ cành chạm thân, để tên bé không bao giờ rơi lên cành */
+    var day = yCanh + 50;
     var soHang = (diem.length > 3) ? 3 : 2;
-    diem.forEach(function(d, j){ d.yQ = day + (j % soHang) * 46; });
+    diem.forEach(function(d, j){ d.yQ = day + (j % soHang) * 44; });
 
     /* anh chị em ruột: một cuống chung chia ra mấy quả */
     var daVe = {};
@@ -620,20 +623,11 @@ async function veCay(SB){
       var xc = nhaNay.reduce(function(t, x){ return t + x.x; }, 0) / nhaNay.length;
       var yc = nhaNay.reduce(function(t, x){ return t + x.y; }, 0) / nhaNay.length;
       var yNut = yc + 24;
-      svg += '<path d="M '+xc+' '+yc+' L '+xc+' '+yNut+'" stroke="#8A3F11" stroke-width="3.5" stroke-linecap="round"></path>'+
-             '<circle cx="'+xc+'" cy="'+yNut+'" r="4" fill="#8A3F11"></circle>';
-      /* nhãn dán sát ngay trên cặp quả, để nhìn là biết nhóm này gồm ai */
-      var xMin = Math.min.apply(null, nhaNay.map(function(x){ return x.x; }));
-      var xMax = Math.max.apply(null, nhaNay.map(function(x){ return x.x; }));
-      var yTren = Math.min.apply(null, nhaNay.map(function(x){ return x.yQ; }));
-      var chuNha = cumAnhChiEm(nhaNay.map(function(x){ return x.c; }));
-      var rongNhan = chuNha.length * (hep ? 9.6 : 7.4) + 20;
-      var xNhan = (xMin + xMax) / 2, yNhan = yTren - 26;
-      svg += '<path d="M '+xMin+' '+(yTren-17)+' L '+xMin+' '+(yNhan+4)+
-             ' M '+xMax+' '+(yTren-17)+' L '+xMax+' '+(yNhan+4)+
-             ' M '+xMin+' '+(yNhan+4)+' L '+xMax+' '+(yNhan+4)+'" stroke="#C99A6E" stroke-width="2" fill="none"></path>'+
-             '<rect x="'+(xNhan-rongNhan/2)+'" y="'+(yNhan-13)+'" width="'+rongNhan+'" height="23" rx="11" fill="#FFF3E6" stroke="#E8C3A0" stroke-width="1.4"></rect>'+
-             '<text class="chu-nha" x="'+xNhan+'" y="'+(yNhan+4)+'" text-anchor="middle">'+esc(chuNha)+'</text>';
+      /* Anh chị em ruột treo chung một cuống. Không ghi chữ lên hình nữa,
+         vì chỗ nào cũng có cành, lá hoặc tên bé khác, viết vào là chồng lên nhau.
+         Ai là anh em với ai thì nói bằng chữ ở phần chú giải ngay dưới cây. */
+      svg += '<path d="M '+xc+' '+yc+' L '+xc+' '+yNut+'" stroke="#8A3F11" stroke-width="4.5" stroke-linecap="round"></path>'+
+             '<circle cx="'+xc+'" cy="'+yNut+'" r="5.5" fill="#8A3F11" stroke="#FDF2EA" stroke-width="2"></circle>';
       nhaNay.forEach(function(x){
         svg += '<path d="M '+xc+' '+yNut+' C '+xc+' '+(yNut+18)+', '+x.x+' '+(x.yQ-32)+', '+x.x+' '+(x.yQ-13)+
                '" stroke="#8A3F11" stroke-width="2.5" fill="none" stroke-linecap="round"></path>';
@@ -659,6 +653,16 @@ async function veCay(SB){
   svg += '</svg>';
 
   var tongBe = ca.length;
+  var dsNha = [];
+  (function(){
+    var da = {};
+    ca.forEach(function(c){
+      if (!c.gia_dinh || da[c.gia_dinh]) return;
+      da[c.gia_dinh] = true;
+      var cung = ca.filter(function(x){ return x.gia_dinh === c.gia_dinh; });
+      if (cung.length > 1) dsNha.push(cung);
+    });
+  })();
   document.getElementById("noi-dung").innerHTML =
     '<section class="mo"><div class="mo-in"><div>'+
       '<div class="chu">Chương trình Kéo và Đẩy</div>'+
@@ -669,10 +673,17 @@ async function veCay(SB){
     '</div></div><div class="vach"></div></section>'+
     '<div class="cay-khung">'+svg+'</div>'+
     '<div class="chu-giai"><span><i style="background:#DE7127"></i>Mỗi quả là một em nhỏ, bấm để mở hành trình</span>'+
-    '<span><i style="background:#A85219"></i>Đã đi '+nhom.length+' chuyến</span></div>'+
+    '<span><i style="background:#A85219"></i>Đã đi '+nhom.length+' chuyến</span>'+
+    (dsNha.length ? '<span><i style="background:#8A3F11"></i>Mấy quả chung một cuống là anh chị em ruột</span>' : '')+
+    '</div>'+
+    (dsNha.length ? '<div class="nha-liet-ke">Trong '+tongBe+' em có '+
+      (dsNha.length === 1 ? 'một nhà' : dsNha.length + ' nhà')+' có anh chị em cùng được đồng hành: '+
+      dsNha.map(function(n){
+        return '<b>'+esc(n.map(function(x){ return tenNgan(x.ten); }).join(' và '))+'</b>';
+      }).join(', ')+'.</div>' : '')+
     dsChuyenVien(ca)+
     '<section class="cuoi" style="margin-top:22px"><div class="nhan">Chương trình Kéo và Đẩy</div>'+
-    '<p style="margin-top:9px">Cây mọc thêm một cành mỗi lần chương trình đi một tỉnh mới, và thêm một quả mỗi lần nhận đồng hành một em nhỏ. '+
+    '<p style="margin-top:9px">Hình này mọc thêm một cành mỗi lần chương trình đi một tỉnh mới, và thêm một quả mỗi lần nhận đồng hành một em nhỏ. '+
     'Chương trình đi cùng con tính bằng năm, cho tới khi con đạt chuẩn.</p>'+
     '<a class="nut" href="/dang-ky.html">Giới thiệu một em nhỏ</a>'+
     '<a class="nut" href="/ban-do" style="background:var(--trang);color:var(--cam-dam);border:1px solid var(--cam-vien);margin-left:9px">Xem trên bản đồ Việt Nam</a></section>';
@@ -798,7 +809,7 @@ async function veBanDo(SB){
     '<section class="cuoi" style="margin-top:22px"><div class="nhan">Chương trình Kéo và Đẩy</div>'+
     '<p style="margin-top:9px">Bản đồ thêm một tỉnh mỗi lần chương trình đi tới một vùng đất mới. '+
     'Chương trình đi cùng mỗi con tính bằng năm, cho tới khi con đạt chuẩn.</p>'+
-    '<a class="nut" href="/cac-be">Xem cây của chương trình</a>'+
+    '<a class="nut" href="/cac-be">Xem tất cả các em nhỏ</a>'+
     '<a class="nut" href="/dang-ky.html" style="background:var(--trang);color:var(--cam-dam);border:1px solid var(--cam-vien);margin-left:9px">Giới thiệu một em nhỏ</a></section>';
 
   /* nhãn đặt sau khi vẽ, vì phải đo được tỉnh nằm ở đâu */
