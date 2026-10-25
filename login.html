@@ -311,6 +311,21 @@
   .tbl .mono{font-family:var(--mono);font-size:12px;color:var(--ink-4)}
   .tbl-wrap{overflow-x:auto}
   .tbl select{background:var(--cam-nhat);border:1.5px solid var(--vien);border-radius:9px;padding:5px 9px}
+  .qtbl{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+  .qtbl th{text-align:center;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--ink-4);padding:0 0 9px;border-bottom:1px solid var(--vien)}
+  .qtbl th:first-child{text-align:left}
+  .qtbl td{padding:10px 6px;border-bottom:1px solid var(--vien);vertical-align:middle}
+  .qtbl tr:last-child td{border-bottom:0}
+  .qtbl td:not(:first-child){text-align:center;width:72px}
+  .qtbl tbody tr:hover{background:var(--cam-nhat)}
+  .qtbl .vt{font-weight:700;color:var(--ink)}
+  .qtbl .vd{color:var(--ink-4);font-size:12px;line-height:1.4;margin-top:2px}
+  .qtbl input[type=checkbox]{width:19px;height:19px;accent-color:var(--cam);cursor:pointer}
+  .qtbl .trong{color:var(--vien);font-size:16px}
+  .mau-q{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:12px;
+    padding-top:12px;border-top:1px dashed var(--vien)}
+  .mau-q .nhan{font-size:12.5px;color:var(--ink-4);margin-right:2px}
   .qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:8px;margin-top:10px}
   .qcheck{display:flex;gap:8px;align-items:flex-start;background:var(--cam-nhat);border:1px solid var(--vien);
     border-radius:10px;padding:9px 11px;font-size:12.5px;cursor:pointer}
@@ -432,6 +447,46 @@ var QUYEN_MOTA={
   cong_khai:["Bật công khai","Quyết định mốc nào hiện trên link riêng của bé."],
   quan_tri:["Quản trị","Tạo tài khoản, tạo nhóm quyền, phân quyền."]
 };
+/* Bảng phân quyền: mỗi dòng là một phần việc, ba cột Xem, Sửa, Xoá.
+   Ô nào không có nghĩa với phần việc đó thì để trống. */
+var VUNG_QUYEN=[
+ {t:"Hồ sơ ca và hành trình", d:"Danh sách các bé, mốc hành trình, số đo nền.",
+  xem:"xem_ca", sua:null, xoa:"xoa"},
+ {t:"Số đo, xét nghiệm, liệu trình", d:"Phần chuyên môn nhập và cập nhật.",
+  xem:null, sua:"sua_chuyen_mon", xoa:null},
+ {t:"Ảnh, bài đăng, câu chuyện", d:"Phần marketing nhập cho trang công khai.",
+  xem:null, sua:"sua_truyen_thong", xoa:null},
+ {t:"Hồ sơ y tế nhạy cảm", d:"Bệnh lý nền và kết quả xét nghiệm chi tiết.",
+  xem:"xem_nhay_cam", sua:null, xoa:null},
+ {t:"Bật công khai ra ngoài", d:"Quyết định bé nào, mốc nào hiện trên keoday.midu.vn.",
+  xem:null, sua:"cong_khai", xoa:null},
+ {t:"Đơn đăng ký gửi về", d:"Nhận đơn từ trang giới thiệu, duyệt thành hồ sơ ca.",
+  xem:null, sua:"duyet_dang_ky", xoa:null},
+ {t:"Người dùng và nhóm quyền", d:"Tạo tài khoản, phân quyền cho người khác.",
+  xem:null, sua:"quan_tri", xoa:null}
+];
+
+/* Mẫu sẵn. Bấm một cái là tích đúng bộ quyền thường dùng, rồi admin thêm bớt tuỳ ý. */
+var MAU_QUYEN={
+ "chuyen-mon":{ten:"Chuyên môn", q:{xem_ca:true,sua_chuyen_mon:true,xem_nhay_cam:true,duyet_dang_ky:true,
+   sua_truyen_thong:false,cong_khai:false,xoa:false,quan_tri:false}},
+ "marketing":{ten:"Marketing", q:{xem_ca:true,sua_truyen_thong:true,cong_khai:true,
+   sua_chuyen_mon:false,xem_nhay_cam:false,duyet_dang_ky:false,xoa:false,quan_tri:false}},
+ "chi-xem":{ten:"Chỉ xem", q:{xem_ca:true,
+   sua_chuyen_mon:false,sua_truyen_thong:false,xem_nhay_cam:false,duyet_dang_ky:false,cong_khai:false,xoa:false,quan_tri:false}},
+ "quan-tri":{ten:"Toàn quyền", q:{xem_ca:true,sua_chuyen_mon:true,sua_truyen_thong:true,xoa:true,
+   xem_nhay_cam:true,duyet_dang_ky:true,cong_khai:true,quan_tri:true}}
+};
+
+/* Báo một dòng ngắn rồi tự tắt, để người dùng biết chắc là đã lưu. */
+function bao(id, chu, loai){
+  var e=document.getElementById(id);
+  if(!e)return;
+  e.textContent=chu; e.className="msg "+(loai||"ok");
+  clearTimeout(bao._t);
+  bao._t=setTimeout(function(){ var x=document.getElementById(id); if(x){x.textContent="";x.className="msg";} }, 4000);
+}
+
 function suaCM(){return !!QUYEN.sua_chuyen_mon;}
 function suaTT(){return !!QUYEN.sua_truyen_thong;}
 function duocXoa(){return !!QUYEN.xoa;}
@@ -1368,25 +1423,49 @@ function trangQuanTri(){
     '<div id="msgND" class="msg" style="margin-top:8px"></div></div></div></section>';
 
   h+='<section class="sec"><div class="sec-head"><h2>Nhóm quyền</h2>'+
-    '<span class="sub">tick quyền nào thì nhóm đó làm được việc đó</span></div>';
+    '<span class="sub">tích vào ô nào thì nhóm đó làm được việc đó, tích xong là lưu ngay</span></div>'+
+    '<div id="msgQ" class="msg" style="margin-bottom:10px"></div>';
   (D.nhom_quyen||[]).forEach(function(n){
-    h+='<div class="card card-pad" style="margin-bottom:12px"><div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">'+
-      '<h3 style="font-size:16px;color:var(--cam-toi)">'+esc(n.ten)+'</h3><span class="mono hint">'+esc(n.ma)+'</span>'+
-      '<span class="hint" style="margin-left:auto">'+(D.nguoi_dung||[]).filter(function(u){return u.nhom===n.ma;}).length+' người</span></div>'+
-      '<p class="hint" style="margin-top:3px">'+esc(n.mo_ta||"")+'</p><div class="qgrid">'+
-      Object.keys(QUYEN_MOTA).map(function(q){
-        var on=n.quyen&&n.quyen[q];
-        return '<label class="qcheck"><input type="checkbox" data-q="'+q+'" data-nhom="'+esc(n.ma)+'"'+(on?" checked":"")+
-          (n.ma==="quan-tri"?" disabled":"")+'><span><span class="qn">'+esc(QUYEN_MOTA[q][0])+'</span>'+
-          '<div class="qd">'+esc(QUYEN_MOTA[q][1])+'</div></span></label>';
-      }).join("")+'</div></div>';
+    var khoa=(n.ma==="quan-tri");
+    var nguoi=(D.nguoi_dung||[]).filter(function(u){return u.nhom===n.ma;});
+    h+='<div class="card card-pad" style="margin-bottom:14px">'+
+      '<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">'+
+      '<h3 style="font-size:17px;color:var(--cam-toi)">'+esc(n.ten)+'</h3>'+
+      '<span class="mono hint">'+esc(n.ma)+'</span>'+
+      '<span class="hint" style="margin-left:auto">'+nguoi.length+' người'+
+        (nguoi.length?': '+esc(nguoi.map(function(u){return u.ho_ten||u.email;}).join(", ")):'')+'</span></div>'+
+      (n.mo_ta?'<p class="hint" style="margin-top:3px">'+esc(n.mo_ta)+'</p>':'')+
+      (khoa?'<p class="hint" style="margin-top:7px">Nhóm toàn quyền, khoá cứng để không ai tự gỡ quyền của mình rồi khoá mình ra ngoài.</p>':'')+
+      '<table class="qtbl"><thead><tr><th>Phần việc</th><th>Xem</th><th>Sửa</th><th>Xoá</th></tr></thead><tbody>'+
+      VUNG_QUYEN.map(function(v){
+        var o=function(k){
+          if(!k)return '<td><span class="trong">—</span></td>';
+          var on=!!(n.quyen&&n.quyen[k]);
+          return '<td><input type="checkbox" data-q="'+k+'" data-nhom="'+esc(n.ma)+'"'+
+            (on?" checked":"")+(khoa?" disabled":"")+' aria-label="'+esc(v.t)+'"></td>';
+        };
+        return '<tr><td><div class="vt">'+esc(v.t)+'</div><div class="vd">'+esc(v.d)+'</div></td>'+
+          o(v.xem)+o(v.sua)+o(v.xoa)+'</tr>';
+      }).join("")+'</tbody></table>'+
+      (khoa?'':'<div class="mau-q"><span class="nhan">Đặt nhanh theo mẫu:</span>'+
+        Object.keys(MAU_QUYEN).filter(function(k){return k!=="quan-tri";}).map(function(k){
+          return '<button class="btn btn-sm" data-mau="'+k+'" data-nhom="'+esc(n.ma)+'">'+esc(MAU_QUYEN[k].ten)+'</button>';
+        }).join("")+
+        '<span class="hint" style="margin-left:6px">Bấm mẫu là tích sẵn bộ thường dùng, sau đó thêm bớt tuỳ ý.</span></div>')+
+      '</div>';
   });
   return h+'<div class="card card-pad"><div class="eyebrow">Tạo nhóm quyền mới</div>'+
     '<div class="edit"><div class="frow">'+
     '<input id="nqTen" type="text" placeholder="Tên nhóm, ví dụ Đội Đắk Lắk" aria-label="Tên nhóm">'+
     '<input id="nqMoTa" type="text" placeholder="Mô tả ngắn" aria-label="Mô tả">'+
+    '<select id="nqMau" aria-label="Bắt đầu từ mẫu">'+
+      '<option value="chi-xem">Bắt đầu từ mẫu: Chỉ xem</option>'+
+      '<option value="chuyen-mon">Bắt đầu từ mẫu: Chuyên môn</option>'+
+      '<option value="marketing">Bắt đầu từ mẫu: Marketing</option>'+
+      '<option value="">Không theo mẫu nào</option>'+
+    '</select>'+
     '</div><div class="acts"><button id="themNhom" class="btn btn-main">Tạo nhóm</button>'+
-    '<span class="hint">Tạo xong thì tick quyền cho nhóm ở trên.</span></div></div></div></section>';
+    '<span class="hint">Tạo xong vẫn sửa được từng ô ở bảng trên.</span></div></div></div></section>';
 }
 
 /* ===================== vẽ ===================== */
@@ -1412,7 +1491,7 @@ function ve(){
 
 /* ===================== sự kiện ===================== */
 document.addEventListener("click",async function(ev){
-  var t=ev.target.closest("[data-tab],[data-tabca],[data-mo],[data-ca],[data-back],[data-delcase],[data-loc],[data-locdk],[data-chep],[data-duyet],[data-daxem],[data-tuchoi],[data-luuca],[data-luumoc],[data-themdong],[data-xoadong],[data-luuchuyen],[data-luuanh],[data-xoaanh],[data-themlt],[data-xoalt],[data-themtt],[data-xoatt],[data-luucv],[data-khoa],#addCase,#themNhom");
+  var t=ev.target.closest("[data-tab],[data-tabca],[data-mo],[data-ca],[data-back],[data-delcase],[data-loc],[data-locdk],[data-chep],[data-duyet],[data-daxem],[data-tuchoi],[data-luuca],[data-luumoc],[data-themdong],[data-xoadong],[data-luuchuyen],[data-luuanh],[data-xoaanh],[data-themlt],[data-xoalt],[data-themtt],[data-xoatt],[data-luucv],[data-mau],[data-khoa],#addCase,#themNhom");
   if(!t)return;
   if(t.hasAttribute("data-tab")){trang=t.getAttribute("data-tab");moCa=null;oMo="";window.scrollTo(0,0);return ve();}
   if(t.hasAttribute("data-tabca")){tabCa=t.getAttribute("data-tabca");oMo="";return ve();}
@@ -1500,6 +1579,18 @@ document.addEventListener("click",async function(ev){
     await ghi("moc",bg,"ca_id,khoa");
     await lamMoi();
     return ve();
+  }
+  if(t.hasAttribute("data-mau")){
+    var maNhom=t.getAttribute("data-nhom"), tenMau=t.getAttribute("data-mau");
+    var mau=MAU_QUYEN[tenMau], nhomCu=(D.nhom_quyen||[]).filter(function(n){return n.ma===maNhom;})[0];
+    if(!mau||!nhomCu)return;
+    var qm=Object.assign({},mau.q);
+    var r4=await ghi("nhom_quyen",{ma:maNhom,ten:nhomCu.ten,mo_ta:nhomCu.mo_ta,quyen:qm},"ma");
+    if(r4&&r4.ok===false){alert("Chưa lưu được: "+r4.loi);return;}
+    if(TOI&&TOI.nhom===maNhom)QUYEN=qm;
+    await lamMoi();ve();
+    bao("msgQ","Đã đặt nhóm "+nhomCu.ten+" theo mẫu "+mau.ten+".");
+    return;
   }
   if(t.hasAttribute("data-luucv")){
     var sl=t.getAttribute("data-luucv"),bxc=t.closest(".card");
@@ -1607,11 +1698,17 @@ document.addEventListener("click",async function(ev){
   }
   if(t.id==="themNhom"){
     var tn=document.getElementById("nqTen").value.trim();
-    if(!tn)return;
-    await ghi("nhom_quyen",{ma:khongDau(tn),ten:tn,mo_ta:document.getElementById("nqMoTa").value.trim(),
-      quyen:{xem_ca:true,sua_ca:false,xem_nhay_cam:false,duyet_dang_ky:false,cong_khai:false,quan_tri:false}},"ma");
-    await lamMoi();
-    return ve();
+    if(!tn){bao("msgQ","Đặt tên cho nhóm đã.","loi");return;}
+    var oMau=document.getElementById("nqMau");
+    var mauDau=(oMau&&MAU_QUYEN[oMau.value])?Object.assign({},MAU_QUYEN[oMau.value].q)
+      :{xem_ca:false,sua_chuyen_mon:false,sua_truyen_thong:false,xoa:false,
+        xem_nhay_cam:false,duyet_dang_ky:false,cong_khai:false,quan_tri:false};
+    var rn=await ghi("nhom_quyen",{ma:khongDau(tn),ten:tn,
+      mo_ta:document.getElementById("nqMoTa").value.trim(),quyen:mauDau},"ma");
+    if(rn&&rn.ok===false){bao("msgQ","Chưa tạo được: "+rn.loi,"loi");return;}
+    await lamMoi();ve();
+    bao("msgQ","Đã tạo nhóm "+tn+". Giờ tích thêm bớt quyền ở bảng của nhóm.");
+    return;
   }
 });
 
@@ -1635,10 +1732,13 @@ document.addEventListener("change",async function(ev){
     var nh=(D.nhom_quyen||[]).filter(function(n){return n.ma===ma;})[0];
     if(!nh)return;
     var qq=Object.assign({},nh.quyen||{});qq[q]=el.checked;
-    await ghi("nhom_quyen",{ma:ma,ten:nh.ten,mo_ta:nh.mo_ta,quyen:qq},"ma");
+    var rq=await ghi("nhom_quyen",{ma:ma,ten:nh.ten,mo_ta:nh.mo_ta,quyen:qq},"ma");
+    if(rq&&rq.ok===false){alert("Chưa lưu được: "+rq.loi);return;}
     await lamMoi();
     if(TOI&&TOI.nhom===ma)QUYEN=qq;
-    return ve();
+    ve();
+    bao("msgQ","Đã lưu quyền cho nhóm "+nh.ten+".");
+    return;
   }
 });
 
