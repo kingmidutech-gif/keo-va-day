@@ -251,6 +251,34 @@
   .chuyen p{font-size:15px;line-height:1.7;color:var(--ink-2);white-space:pre-wrap}
   .chuyen .tt{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
 
+  .chang-dau{display:flex;gap:11px;align-items:baseline;flex-wrap:wrap;margin:22px 0 6px;padding-left:52px}
+  .chang-dau:first-child{margin-top:4px}
+  .chang-dau .so{width:26px;height:26px;border-radius:50%;background:var(--cam);color:#fff;
+    display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px;
+    margin-left:-52px;margin-right:0}
+  .chang-dau.xong .so{background:var(--ok)}
+  .chang-dau h3{font-family:var(--dis);font-size:16.5px;color:var(--cam-toi);margin:0}
+  .chang-dau .mo{font-size:12.5px;color:var(--ink-4)}
+  .chang-dau .dem{margin-left:auto;font-size:12px;color:var(--ink-4)}
+  .con-thieu{margin-top:12px;padding:10px 13px;background:var(--cam-nhat);border:1px dashed var(--cam-vien);
+    border-radius:var(--r-sm);font-size:13px;color:var(--ink-4);line-height:1.5}
+  .nhom-viec{background:var(--trang);border:1px solid var(--vien);border-radius:var(--r-sm);
+    margin-bottom:8px;overflow:hidden}
+  .nhom-viec summary{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;cursor:pointer;
+    list-style:none}
+  .nhom-viec summary::-webkit-details-marker{display:none}
+  .nhom-viec summary:hover{background:var(--cam-nhat)}
+  .nhom-viec .tx{flex:1;min-width:0}
+  .nhom-viec .t1{font-weight:700}
+  .nhom-viec .dem{display:inline-block;margin-left:8px;background:var(--cam-nhat2);color:var(--cam-sau);
+    border-radius:20px;padding:1px 9px;font-size:12px;font-weight:800}
+  .nhom-viec .t2{color:var(--ink-4);font-size:12.5px;line-height:1.45;margin-top:3px}
+  .nhom-viec[open] summary{border-bottom:1px solid var(--vien)}
+  .ds-viec{display:flex;flex-wrap:wrap;gap:7px;padding:12px 15px}
+  .viec-nho{background:var(--cam-nhat);border:1px solid var(--cam-vien);border-radius:var(--r-pill);
+    padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--cam-toi);cursor:pointer;font-family:inherit}
+  .viec-nho:hover{background:var(--cam);color:#fff;border-color:var(--cam)}
+  .viec-nho .phu{font-weight:500;opacity:.75;font-size:12.5px}
   .journey{position:relative;padding-left:52px}
   .journey::before{content:"";position:absolute;left:21px;top:0;bottom:0;width:11px;
     background:repeating-linear-gradient(to bottom,var(--cam-vien) 0 1px,transparent 1px 7px)}
@@ -404,34 +432,61 @@ var CAU_HINH = {
 };
 
 /* ===================== hằng số ===================== */
+/* Bốn chặng của một hồ sơ. Mốc nào cũng thuộc đúng một chặng, xếp theo thứ tự việc thật xảy ra. */
+var CHANG=[
+ {k:"nhan",      t:"Nhận hồ sơ", d:"Có người phát hiện ra con và gửi hồ sơ về chương trình."},
+ {k:"tim-hieu",  t:"Tìm hiểu",   d:"Đến tận nhà, khám, làm xét nghiệm nếu chưa đủ căn cứ."},
+ {k:"quyet",     t:"Quyết định", d:"Họp xét rồi chốt có nhận đồng hành hay không."},
+ {k:"dong-hanh", t:"Đồng hành",  d:"Đo lại định kỳ, theo dõi, kể câu chuyện ra ngoài."}
+];
+
+/* chinh:true là mốc bắt buộc, dùng để tính tiến độ. Mốc còn lại chỉ làm khi cần. */
 var STAGES=[
- {k:"de-xuat",t:"Chuyên viên đề xuất",who:"Chuyên viên, đại lý địa phương",
+ {k:"de-xuat",t:"Hồ sơ gửi về chương trình",chang:"nhan",chinh:true,who:"Chuyên viên, đại lý địa phương",
   d:"Hồ sơ mở từ đề xuất của người biết hoàn cảnh trẻ tại địa phương.",wait:"Chưa có hồ sơ đề xuất."},
- {k:"phac-do",t:"Phác đồ sơ bộ",who:"Ban chuyên môn đo lại",
-  d:"Chuyên môn làm lại phác đồ dù chuyên viên đã làm: chiều cao, cân nặng, ở chuẩn hay dưới chuẩn, kèm gợi ý liệu trình bao nhiêu ống.",wait:"Chờ chuyên môn đo lại và dựng liệu trình."},
- {k:"benh-ly",t:"Bệnh lý nền",who:"Ban chuyên môn hỏi gia đình",kin:true,
-  d:"Khai thác bệnh lý nền trước chuyến đi.",wait:"Chưa khai thác bệnh lý nền."},
- {k:"khao-sat",t:"Khảo sát thực địa",who:"Bác sĩ đi cùng đoàn",
+ {k:"phac-do",t:"Phân tích thể trạng",chang:"nhan",chinh:true,who:"Ban chuyên môn đo lại",
+  d:"Chuyên môn làm lại phác đồ dù chuyên viên đã làm: chiều cao, cân nặng, ở chuẩn hay dưới chuẩn, kèm gợi ý liệu trình.",wait:"Chờ chuyên môn đo lại và dựng liệu trình."},
+
+ {k:"khao-sat",t:"Đoàn đến tận nhà",chang:"tim-hieu",chinh:true,who:"Bác sĩ đi cùng đoàn",
   d:"Bác sĩ đánh giá lại tại nhà, truy nguyên nhân thấp còi hoặc nhẹ cân, ghi phiếu khảo sát.",wait:"Chưa tới ngày khảo sát."},
- {k:"xet-nghiem",t:"Xét nghiệm",who:"Theo chỉ định của bác sĩ",list:"xet_nghiem",kin:true,
+ {k:"benh-ly",t:"Bệnh lý nền",chang:"tim-hieu",kin:true,who:"Ban chuyên môn hỏi gia đình",
+  d:"Khai thác bệnh lý nền trước chuyến đi.",wait:"Chưa khai thác bệnh lý nền."},
+ {k:"tai-tro-xn",t:"Tài trợ làm xét nghiệm",chang:"tim-hieu",who:"Công ty",
+  d:"Khảo sát xong mà chưa đủ căn cứ để quyết thì chương trình tài trợ cho gia đình đi làm xét nghiệm trước.",wait:"Chưa cần tài trợ xét nghiệm."},
+ {k:"xet-nghiem",t:"Xét nghiệm chi tiết",chang:"tim-hieu",list:"xet_nghiem",kin:true,who:"Theo chỉ định của bác sĩ",
   d:"Ghi theo từng thời điểm để còn đối chiếu sau vài tháng, vài năm.",wait:"Chưa chỉ định xét nghiệm."},
- {k:"tai-tro-xn",t:"Tài trợ làm xét nghiệm",who:"Công ty",
-  d:"Khi khảo sát xong mà chưa đủ căn cứ để quyết, chương trình tài trợ cho gia đình đi làm xét nghiệm trước.",wait:"Chưa tài trợ xét nghiệm nào."},
- {k:"ket-qua-xn",t:"Kết quả xét nghiệm đã công bố",who:"Chuyên môn và Marketing",
-  d:"Phần kết quả đã công bố ra ngoài, ví dụ tuổi xương hay kim loại nặng đã đăng trên fanpage. Chi tiết chưa công bố vẫn để ở mục Xét nghiệm.",wait:"Chưa có kết quả nào công bố."},
- {k:"theo-doi",t:"Theo dõi sau khi đồng hành",who:"Chuyên môn và Marketing",
-  d:"Những gì ghi nhận được sau khi con đã vào chương trình.",wait:"Chưa có gì công bố."},
- {k:"hop-noi-bo",t:"Họp nội bộ đánh giá",who:"Chuyên môn và vận hành",
+ {k:"ket-qua-xn",t:"Kết quả xét nghiệm",chang:"tim-hieu",who:"Chuyên môn và Marketing",
+  d:"Phần kết quả đã công bố ra ngoài, ví dụ tuổi xương hay kim loại nặng đã đăng trên fanpage.",wait:"Chưa có kết quả nào công bố."},
+
+ {k:"hop-noi-bo",t:"Chương trình họp xét",chang:"quyet",who:"Chuyên môn và vận hành",
   d:"Chốt ca trước khi ra quyết định tài trợ.",wait:"Chưa đưa ra họp."},
- {k:"quyet-dinh",t:"Quyết định tài trợ",who:"Công ty",
+ {k:"quyet-dinh",t:"Quyết định đồng hành",chang:"quyet",chinh:true,who:"Công ty",
   d:"Đạt hay không đạt, kèm ngày ra quyết định.",wait:"Chưa có quyết định."},
- {k:"giao-hang",t:"Trao quyết định và giao sản phẩm",who:"Đoàn công tác",
+ {k:"giao-hang",t:"Trao quyết định và sản phẩm",chang:"quyet",chinh:true,who:"Đoàn công tác",
   d:"Trao biển và quyết định ngay tại nhà, hàng gửi sau, dự trù một tháng cho mỗi bé.",wait:"Chưa trao."},
- {k:"tai-danh-gia",t:"Tái đánh giá mốc 3 tháng",who:"Chuyên viên đo lại, chuyên môn chốt",list:"tai_danh_gia",
+
+ {k:"tai-danh-gia",t:"Đo lại định kỳ",chang:"dong-hanh",list:"tai_danh_gia",who:"Chuyên viên đo lại, chuyên môn chốt",
   d:"Chuyên viên đo lại chiều cao, cân nặng. Chuyên môn chốt giữ phác đồ, giảm liều hay tăng lên.",wait:"Chưa tới mốc đo lại."},
- {k:"tu-lieu",t:"Hình ảnh và video",who:"Marketing",
+ {k:"theo-doi",t:"Thay đổi sau khi đồng hành",chang:"dong-hanh",who:"Chuyên môn và Marketing",
+  d:"Những gì ghi nhận được sau khi con đã vào chương trình.",wait:"Chưa có gì công bố."},
+ {k:"tu-lieu",t:"Hình ảnh và video",chang:"dong-hanh",who:"Marketing",
   d:"Tư liệu theo từng mốc, dùng cho trang công khai của bé.",wait:"Chưa có tư liệu."}
 ];
+
+/* Tiến độ tính trên mốc bắt buộc, để con số nói đúng việc còn phải làm. */
+function MOC_CHINH(){ return STAGES.filter(function(s){ return s.chinh; }); }
+function tienDo(c){
+  var chinh=MOC_CHINH(), xong=chinh.filter(function(st){ return thayMoc(c,st); }).length;
+  var dangO=CHANG[0];
+  CHANG.forEach(function(g){
+    var cua=STAGES.filter(function(s){ return s.chang===g.k && s.chinh; });
+    if(cua.length && cua.every(function(st){ return thayMoc(c,st); })) {
+      var i=CHANG.indexOf(g);
+      dangO=CHANG[Math.min(i+1, CHANG.length-1)];
+    }
+  });
+  return { xong:xong, tong:chinh.length, chang:dangO };
+}
 var TT={"dong-hanh":{nhan:"Đã đồng hành",cls:"dong-hanh"},"xem-xet":{nhan:"Đang xem xét",cls:"xem-xet"},
         "cho":{nhan:"Chờ khảo sát",cls:"cho"},"khong-dat":{nhan:"Không đạt",cls:"khong-dat"}};
 var TEN_TT_DK={moi:"Mới","da-xem":"Đã xem","da-duyet":"Đã duyệt","tu-choi":"Từ chối"};
@@ -873,28 +928,51 @@ function trangTongQuan(){
 
   var viec=[];
   (D.dang_ky||[]).filter(function(x){return x.trang_thai==="moi";}).forEach(function(dk){
-    viec.push({f:"f-stop",t1:"Đơn đăng ký mới chưa duyệt",t2:(dk.ho_ten_tre||"chưa rõ tên")+" · "+(dk.dia_chi||""),go:"dang-ky"});
+    viec.push({f:"f-stop",loai:"Đơn đăng ký mới chưa duyệt",
+      viLoai:"Đơn gửi từ trang giới thiệu, duyệt thành hồ sơ ca hoặc từ chối.",
+      ai:(dk.ho_ten_tre||"chưa rõ tên"),phu:(dk.dia_chi||""),go:"dang-ky"});
   });
   ca.forEach(function(c){
     var hd=hanDoLai(c);
-    if(hd)viec.push({f:hd.bad?"f-stop":"f-wait",t1:hd.txt,t2:c.ten+" · chuyên viên phải đo lại chiều cao, cân nặng",ca:c.id});
-    if(c.trang_thai==="dong-hanh"&&!num(c.cao))viec.push({f:"f-stop",t1:"Thiếu số đo nền",t2:c.ten+" · không có số nền thì không đo được tiến bộ",ca:c.id});
-    if(c.trang_thai==="dong-hanh"&&!c.cong_khai)viec.push({f:"f-info",t1:"Chưa bật link công khai",t2:c.ten+" · chưa dùng được cho truyền thông",ca:c.id});
-    if(c.trang_thai==="cho")viec.push({f:"f-wait",t1:"Chờ khảo sát",t2:c.ten+" · hồ sơ cần hoàn thiện trước chuyến đi",ca:c.id});
-    if(c.trang_thai==="dong-hanh"&&!c.cau_chuyen)viec.push({f:"f-stop",t1:"Chưa có câu chuyện ngắn",
-      t2:c.ten+" · đã có quyết định đồng hành, cần viết câu chuyện rồi hỏi Trưởng phòng Marketing duyệt",ca:c.id});
+    if(hd)viec.push({f:hd.bad?"f-stop":"f-wait",loai:"Tới hạn đo lại",
+      viLoai:"Chuyên viên phải đo lại chiều cao, cân nặng rồi nhập vào mốc Đo lại định kỳ.",
+      ai:c.ten,phu:hd.txt,ca:c.id});
+    if(c.trang_thai==="dong-hanh"&&!num(c.cao))viec.push({f:"f-stop",loai:"Thiếu số đo nền",
+      viLoai:"Không có số nền thì không đo được con đã tiến bộ bao nhiêu.",ai:c.ten,phu:"",ca:c.id});
+    if(c.trang_thai==="dong-hanh"&&!c.cong_khai)viec.push({f:"f-info",loai:"Chưa bật link công khai",
+      viLoai:"Bật lên thì bé mới hiện trên keoday.midu.vn và dùng được cho truyền thông.",ai:c.ten,phu:"",ca:c.id});
+    if(c.trang_thai==="cho")viec.push({f:"f-wait",loai:"Chờ khảo sát",
+      viLoai:"Hồ sơ cần hoàn thiện trước chuyến đi.",ai:c.ten,phu:"",ca:c.id});
+    if(c.trang_thai==="dong-hanh"&&!c.cau_chuyen)viec.push({f:"f-stop",loai:"Chưa có câu chuyện ngắn",
+      viLoai:"Đã có quyết định đồng hành thì viết câu chuyện rồi trình Trưởng phòng Marketing duyệt.",ai:c.ten,phu:"",ca:c.id});
     if(c.trang_thai==="dong-hanh"&&c.cau_chuyen&&c.cau_chuyen_tt!=="da-duyet")
-      viec.push({f:"f-wait",t1:"Câu chuyện chờ duyệt",t2:c.ten+" · đã viết, chờ Trưởng phòng Marketing duyệt trước khi đem đi truyền thông",ca:c.id});
+      viec.push({f:"f-wait",loai:"Câu chuyện chờ duyệt",
+        viLoai:"Đã viết xong, chờ Trưởng phòng Marketing duyệt trước khi đem đi truyền thông.",ai:c.ten,phu:"",ca:c.id});
   });
   var ord={"f-stop":0,"f-wait":1,"f-info":2};
-  viec.sort(function(a,b){return ord[a.f]-ord[b.f];});
+
+  /* Gom theo loại việc: mỗi loại một dòng, bấm ra mới thấy danh sách tên. */
+  var nhomViec=[];
+  viec.forEach(function(v){
+    var g=nhomViec.filter(function(x){return x.loai===v.loai;})[0];
+    if(!g){g={loai:v.loai,viLoai:v.viLoai,f:v.f,ds:[]};nhomViec.push(g);}
+    if(ord[v.f]<ord[g.f])g.f=v.f;
+    g.ds.push(v);
+  });
+  nhomViec.sort(function(a,b){return ord[a.f]-ord[b.f] || b.ds.length-a.ds.length;});
 
   h+='<div class="two-col"><section class="sec"><div class="sec-head"><h2>Cần làm</h2>'+
-     '<span class="sub">'+viec.length+' việc đang mở</span></div>'+
-     (viec.length?'<div class="todo">'+viec.map(function(v){
-       return '<button class="todo-item" '+(v.ca?'data-ca="'+esc(v.ca)+'"':'data-tab="'+v.go+'"')+'>'+
-         '<span class="flag '+v.f+'"></span><span class="tx"><span class="t1">'+esc(v.t1)+'</span>'+
-         (v.ca?' <span class="code">'+esc(v.ca)+'</span>':'')+'<div class="t2">'+esc(v.t2)+'</div></span></button>';
+     '<span class="sub">'+viec.length+' việc, gom thành '+nhomViec.length+' nhóm</span></div>'+
+     (viec.length?'<div class="todo">'+nhomViec.map(function(g,gi){
+       return '<details class="nhom-viec"'+(gi===0?" open":"")+'>'+
+         '<summary><span class="flag '+g.f+'"></span>'+
+           '<span class="tx"><span class="t1">'+esc(g.loai)+'</span>'+
+           '<span class="dem">'+g.ds.length+'</span>'+
+           '<div class="t2">'+esc(g.viLoai)+'</div></span></summary>'+
+         '<div class="ds-viec">'+g.ds.map(function(v){
+           return '<button class="viec-nho" '+(v.ca?'data-ca="'+esc(v.ca)+'"':'data-tab="'+v.go+'"')+'>'+
+             esc(v.ai)+(v.phu?' <span class="phu">'+esc(v.phu)+'</span>':'')+'</button>';
+         }).join("")+'</div></details>';
      }).join("")+'</div>':'<div class="card card-pad hint">Không có việc nào đang mở.</div>')+'</section>';
 
   h+='<section class="sec"><div class="sec-head"><h2>Link công khai đang chạy</h2></div><div class="card card-pad">'+
@@ -986,8 +1064,8 @@ function anhTron(c,cls){
 function the(c){
   var t=TT[c.trang_thai]||TT["cho"];
   var xong=(CHE_DO==="that"&&c.so_moc!=null)?Number(c.so_moc):demMoc(c);
-  var hd=hanDoLai(c),bars="";
-  for(var i2=0;i2<STAGES.length;i2++)bars+='<i class="'+(i2<xong?"on":"")+'"></i>';
+  var hd=hanDoLai(c),bars="",td=tienDo(c),viTri=CHANG.indexOf(td.chang);
+  for(var i2=0;i2<CHANG.length;i2++)bars+='<i class="'+(i2<=viTri?"on":"")+'"></i>';
   var so=(num(c.cao)?c.cao+" cm":"")+(num(c.cao)&&num(c.nang)?" · ":"")+(num(c.nang)?String(c.nang).replace(".",",")+" kg":"");
   return '<button class="ccard s-'+t.cls+'" data-ca="'+esc(c.id)+'">'+anhTron(c)+
     '<span class="than">'+
@@ -996,7 +1074,7 @@ function the(c){
     '<div class="place">'+esc(c.dia_ban||"")+'</div>'+
     '<div class="measure">'+(so?esc(so):'<span style="color:var(--ink-4)">chưa có số đo nền</span>')+'</div>'+
     '<div class="steps">'+bars+'</div>'+
-    '<div class="foot"><span class="num">'+xong+'/'+STAGES.length+' mốc</span>'+
+    '<div class="foot"><span class="num">'+td.xong+'/'+td.tong+' mốc chính</span>'+
     (hd?'<span class="due" style="margin-left:auto">⚑ '+esc(hd.txt)+'</span>':(c.cong_khai?'<span class="live" style="margin-left:auto">● công khai</span>':''))+
     '</div></span></button>';
 }
@@ -1013,7 +1091,7 @@ function trangCa(id){
    '<h1>'+esc(c.ten)+'</h1><div class="where">'+esc(c.dia_ban||"")+(c.tuoi?' · '+esc(c.tuoi):'')+'</div>'+
    '<div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:10px">'+
    '<span class="pill p-'+t.cls+'">'+esc(t.nhan)+'</span>'+
-   '<span class="hint num">'+xong+'/'+STAGES.length+' mốc</span>'+
+   '<span class="hint num">Đang ở chặng '+tienDo(c).chang.t+'</span>'+
    (c.cong_khai?'<span class="pill p-dong-hanh">● link công khai đang bật</span>':'')+
    (hd?'<span class="pill '+(hd.bad?"p-khong-dat":"p-xem-xet")+'">'+esc(hd.txt)+'</span>':'')+
    '</div></div></div><div class="ruler"></div></div>';
@@ -1021,7 +1099,7 @@ function trangCa(id){
   var soAnh=((c.anh_ho_so&&c.anh_ho_so.length)||0)+(c.anh_bia?1:0);
   var soBai=(D.truyen_thong||[]).filter(function(x){return x.ca_id===c.id;}).length;
   var soLT=(D.lieu_trinh||[]).filter(function(x){return x.ca_id===c.id;}).length;
-  var tabs=[["thong-tin","Thông tin bé",""],["hanh-trinh","Hành trình",xong+"/"+STAGES.length],
+  var tabs=[["thong-tin","Thông tin bé",""],["hanh-trinh","Hành trình",tienDo(c).xong+"/"+tienDo(c).tong],
             ["lieu-trinh","Liệu trình",soLT?String(soLT):""],["tu-lieu","Ảnh và bài đăng",(soAnh+soBai)?String(soAnh+soBai):""]];
   h+='<div class="subtabs">'+tabs.map(function(x){
     return '<button class="subtab" data-tabca="'+x[0]+'" aria-pressed="'+(tabCa===x[0])+'">'+esc(x[1])+
@@ -1037,13 +1115,22 @@ function trangCa(id){
 
 /* ---------- thẻ con: thông tin bé ---------- */
 function phanThongTin(c,d){
+  var gt={nam:"Nam",nu:"Nữ"}[c.gioi_tinh]||c.gioi_tinh;
+  var oDay=[
+    ["Đợt",d.ten,0],["Địa bàn",c.dia_ban,0],["Tuổi",c.tuoi,0],["Giới tính",gt,0],
+    ["Ngày sinh",c.ngay_sinh?fmt(String(c.ngay_sinh)):"",1],
+    ["Chiều cao nền",num(c.cao)?c.cao+" cm":"",1],
+    ["Cân nặng nền",num(c.nang)?String(c.nang).replace(".",",")+" kg":"",1],
+    ["Dự đoán tuổi 20",num(c.du_doan_20)?String(c.du_doan_20).replace(".",",")+" cm":"",1],
+    ["Cao bố / mẹ",(num(c.cao_bo)||num(c.cao_me))?((num(c.cao_bo)?c.cao_bo:"?")+" / "+(num(c.cao_me)?c.cao_me:"?")+" cm"):"",1],
+    ["Người nuôi",c.nguoi_nuoi,0],["Chuyên viên đề xuất",c.de_xuat_boi,0]
+  ];
+  var coDL=oDay.filter(function(x){return x[1];});
+  var trong=oDay.filter(function(x){return !x[1];}).map(function(x){return x[0].toLowerCase();});
   var h='<section class="card card-pad" style="margin-bottom:18px">'+
-   '<div class="facts">'+fc("Đợt",d.ten)+fc("Địa bàn",c.dia_ban)+
-   fc("Tuổi",c.tuoi)+fc("Giới tính",c.gioi_tinh)+fc("Ngày sinh",c.ngay_sinh?fmt(String(c.ngay_sinh)):"",1)+
-   fc("Chiều cao nền",num(c.cao)?c.cao+" cm":"",1)+fc("Cân nặng nền",num(c.nang)?String(c.nang).replace(".",",")+" kg":"",1)+
-   fc("Dự đoán tuổi 20",num(c.du_doan_20)?String(c.du_doan_20).replace(".",",")+" cm":"",1)+
-   fc("Cao bố / mẹ",(num(c.cao_bo)||num(c.cao_me))?((num(c.cao_bo)?c.cao_bo:"?")+" / "+(num(c.cao_me)?c.cao_me:"?")+" cm"):"",1)+
-   fc("Người nuôi",c.nguoi_nuoi)+fc("Chuyên viên đề xuất",c.de_xuat_boi)+'</div>';
+   '<div class="facts">'+coDL.map(function(x){return fc(x[0],x[1],x[2]);}).join("")+'</div>'+
+   (trong.length?'<div class="con-thieu">Chưa có: '+esc(trong.join(", "))+
+     (suaCM()?' · bấm <b>Sửa thông tin bé</b> ở cuối thẻ để điền':'')+'</div>':'');
   if(c.ghi_chu)h+='<div class="note">'+esc(c.ghi_chu)+'</div>';
 
   if(num(c.chuan_cao)&&num(c.cao))h+='<div class="gap"><div class="eyebrow">So với chuẩn lúc nhận hồ sơ'+
@@ -1053,7 +1140,7 @@ function phanThongTin(c,d){
   var tb=tienBo(c);
   h+='<div class="gap"><div class="eyebrow">Tiến bộ sau khi đồng hành</div>';
   if(!tb){
-    h+='<p class="hint" style="margin-top:8px">Chưa có lần đo lại nào. Chuyên môn nhập ở thẻ Hành trình, mốc 09, hệ thống sẽ tự tính mức tăng, tốc độ mỗi tháng và phần thu hẹp so với chuẩn.</p>';
+    h+='<p class="hint" style="margin-top:8px">Chưa có lần đo lại nào. Chuyên môn nhập ở thẻ Hành trình, chặng Đồng hành, mốc Đo lại định kỳ. Hệ thống sẽ tự tính mức tăng, tốc độ mỗi tháng và phần thu hẹp so với chuẩn.</p>';
   }else{
     h+='<div class="tien-bo">'+
       ob(tb.tang_cao!=null?(tb.tang_cao>0?"+":"")+String(tb.tang_cao).replace(".",",")+" cm":"—","Tăng chiều cao",
@@ -1110,9 +1197,28 @@ function phanThongTin(c,d){
 function phanHanhTrinh(c){
   var cho=-1;
   for(var k2=0;k2<STAGES.length;k2++){if(!thayMoc(c,STAGES[k2])){cho=k2;break;}}
+  var td=tienDo(c);
   var h='<section class="sec"><div class="sec-head"><h2>Hành trình</h2>'+
-    '<span class="sub">10 mốc theo luồng chuyên môn</span></div><div class="journey">';
-  STAGES.forEach(function(st,idx){
+    '<span class="sub">bốn chặng, mốc nào chưa tới thì để trống</span></div>';
+
+  CHANG.forEach(function(g, gi){
+    var cua=STAGES.filter(function(x){ return x.chang===g.k; });
+    var xongG=cua.filter(function(x){ return thayMoc(c,x); }).length;
+    var chinhG=cua.filter(function(x){ return x.chinh; });
+    var trong=chinhG.length && chinhG.every(function(x){ return thayMoc(c,x); });
+    h+='<div class="chang-dau'+(trong?" xong":"")+'"><span class="so">'+(gi+1)+'</span>'+
+       '<h3>'+esc(g.t)+'</h3><span class="mo">'+esc(g.d)+'</span>'+
+       '<span class="dem">'+xongG+'/'+cua.length+' mốc đã có</span></div>';
+    h+='<div class="journey">';
+    veMocCua(cua);
+    h+='</div>';
+  });
+
+  return h+'</section>';
+
+  function veMocCua(danhSach){
+  danhSach.forEach(function(st){
+    var idx=STAGES.indexOf(st);
     var khoaO="moc:"+st.k;
     if(st.kin&&!QUYEN.xem_nhay_cam){
       h+='<div class="stage gon"><span class="no">'+String(idx+1).padStart(2,"0")+'</span><span class="mk"></span>'+
@@ -1179,7 +1285,7 @@ function phanHanhTrinh(c){
     }
     h+='</div></div>';
   });
-  return h+'</div></section>';
+  }
 }
 
 /* ---------- thẻ con: liệu trình ---------- */
@@ -1379,14 +1485,22 @@ function dem(ds){
   return ra.join(" · ")||"—";
 }
 function trangQuyTrinh(){
-  var h='<section class="sec"><div class="sec-head"><h2>Mười mốc của một ca</h2>'+
-    '<span class="sub">theo mô tả của ban chuyên môn, họp 23/10/2026</span></div><div class="card card-pad">';
-  STAGES.forEach(function(st,k){
-    h+='<div class="proc-step"><div class="pn">'+String(k+1).padStart(2,"0")+'</div><div><h3>'+esc(st.t)+
-      (st.kin?' <span class="tag tag-kin">dữ liệu nhạy cảm</span>':'')+'</h3>'+
-      '<div class="who">'+esc(st.who)+'</div><p>'+esc(st.d)+'</p></div></div>';
+  var h='<section class="sec"><div class="sec-head"><h2>Một hồ sơ đi qua những gì</h2>'+
+    '<span class="sub">bốn chặng, '+STAGES.length+' mốc · theo mô tả của ban chuyên môn, họp 23/10/2026</span></div>';
+  CHANG.forEach(function(g,gi){
+    var cua=STAGES.filter(function(x){return x.chang===g.k;});
+    h+='<div class="chang-dau" style="padding-left:0;margin-left:0"><span class="so" style="margin-left:0">'+(gi+1)+'</span>'+
+       '<h3>'+esc(g.t)+'</h3><span class="mo">'+esc(g.d)+'</span></div><div class="card card-pad">';
+    cua.forEach(function(st){
+      var k=STAGES.indexOf(st);
+      h+='<div class="proc-step"><div class="pn">'+String(k+1).padStart(2,"0")+'</div><div><h3>'+esc(st.t)+
+        (st.kin?' <span class="tag tag-kin">dữ liệu nhạy cảm</span>':'')+
+        (st.chinh?' <span class="tag">mốc bắt buộc</span>':'')+'</h3>'+
+        '<div class="who">'+esc(st.who)+'</div><p>'+esc(st.d)+'</p></div></div>';
+    });
+    h+='</div>';
   });
-  return h+'</div></section><div class="two-col">'+
+  return h+'</section><div class="two-col">'+
     '<section class="sec"><div class="sec-head"><h2>Tiêu chí xét chọn</h2></div><div class="card card-pad"><ul class="plain">'+
     '<li><b>Độ tuổi ưu tiên:</b> cuối mầm non tới đầu tiểu học. Tránh nhóm tiền dậy thì vì tăng trưởng tự nhiên làm nhiễu kết quả.</li>'+
     '<li><b>Giới hạn tuổi đồng hành:</b> không quá 15 tuổi với nam, 13 tuổi với nữ.</li>'+
@@ -1482,9 +1596,8 @@ function ve(){
   else if(trang==="nguoi-gt")h+=trangNguoiGT();
   else if(trang==="quy-trinh")h+=trangQuyTrinh();
   else if(trang==="quan-tri")h+=trangQuanTri();
-  h+='<div class="foot">Luồng 10 mốc dựng theo mô tả của ban chuyên môn trong họp <b>23/10/2026</b>. '+
-     'Bệnh lý nền và xét nghiệm bị khoá ở tầng database, không bao giờ ra link công khai. '+
-     'Trang giới thiệu: <a href="https://keoday.midu.vn" target="_blank" rel="noopener">keoday.midu.vn</a>.</div>';
+  h+='<div class="foot">Bệnh lý nền và xét nghiệm chi tiết bị khoá ở tầng database, không bao giờ ra trang công khai. '+
+     'Trang chương trình: <a href="https://keoday.midu.vn" target="_blank" rel="noopener">keoday.midu.vn</a>.</div>';
   v.innerHTML=h;
   try{location.hash=moCa?("ca/"+encodeURIComponent(moCa)):(trang==="tong-quan"?"":trang);}catch(e){}
 }
