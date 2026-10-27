@@ -732,12 +732,12 @@ async function veCay(SB){
 
   var hep = (window.innerWidth || 1000) < 760;
   var W = hep ? 760 : 1240;
-  var yNgon = 250, canhTren = 400;
+  var yNgon = 268, canhTren = 430;
   var buocCanh = hep ? 192 : 178;             /* hai cành cách nhau bao nhiêu */
   var yGoc = canhTren + 126 + (nhom.length - 1) * buocCanh + 126;
   var H = yGoc + 132;
   var xThan = W / 2;
-  var toTan = 1.34;                            /* tán phóng to cho cây ra dáng */
+  var toTan = 1.58;                            /* tán phóng to cho cây ra dáng */
 
   var svg = '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Tất cả các em nhỏ chương trình đang đồng hành, vẽ thành một cái cây">';
 
@@ -768,6 +768,13 @@ async function veCay(SB){
         '<stop offset="1" stop-color="#FFD467" stop-opacity="0"></stop></radialGradient>'+
       '<linearGradient id="menCo" x1="0" y1="0" x2="0" y2="1">'+
         '<stop offset="0" stop-color="#DCEBCF"></stop><stop offset="1" stop-color="#C7DEB8"></stop></linearGradient>'+
+      '<linearGradient id="menNui" x1="0" y1="0" x2="0" y2="1">'+
+        '<stop offset="0" stop-color="#E7DCCF"></stop><stop offset="1" stop-color="#EFE6DA"></stop></linearGradient>'+
+      '<linearGradient id="menDoi" x1="0" y1="0" x2="0" y2="1">'+
+        '<stop offset="0" stop-color="#DBE7CE"></stop><stop offset="1" stop-color="#E6EEDC"></stop></linearGradient>'+
+      '<linearGradient id="menNang" x1="0" y1="0" x2="0.4" y2="1">'+
+        '<stop offset="0" stop-color="#FFE9B8" stop-opacity=".55"></stop>'+
+        '<stop offset="1" stop-color="#FFE9B8" stop-opacity="0"></stop></linearGradient>'+
     '</defs>';
 
   /* ---- nền trời, mặt trời, mây ---- */
@@ -782,6 +789,29 @@ async function veCay(SB){
       '<circle cx="'+(x+6*k)+'" cy="'+(y-12*k)+'" r="'+(21*k)+'"></circle>'+
       '<circle cx="'+(x+30*k)+'" cy="'+(y-4*k)+'" r="'+(14*k)+'"></circle></g>';
   });
+  /* dãy núi xa và đồi, cho cây đứng trong một khung cảnh chứ không lơ lửng */
+  var yChan = yGoc + 34;
+  svg += '<path d="M 0 '+(yChan-96)+' L '+(W*0.1)+' '+(yChan-186)+' L '+(W*0.18)+' '+(yChan-138)+
+         ' L '+(W*0.28)+' '+(yChan-214)+' L '+(W*0.4)+' '+(yChan-120)+' L '+(W*0.52)+' '+(yChan-176)+
+         ' L '+(W*0.66)+' '+(yChan-108)+' L '+(W*0.8)+' '+(yChan-196)+' L '+(W*0.92)+' '+(yChan-126)+
+         ' L '+W+' '+(yChan-160)+' L '+W+' '+yChan+' L 0 '+yChan+' Z" fill="url(#menNui)"></path>';
+  svg += '<path d="M 0 '+(yChan-54)+' Q '+(W*0.16)+' '+(yChan-116)+' '+(W*0.34)+' '+(yChan-58)+
+         ' Q '+(W*0.52)+' '+(yChan-4)+' '+(W*0.7)+' '+(yChan-64)+
+         ' Q '+(W*0.88)+' '+(yChan-118)+' '+W+' '+(yChan-50)+
+         ' L '+W+' '+yChan+' L 0 '+yChan+' Z" fill="url(#menDoi)"></path>';
+  /* hàng cây nhỏ phía xa */
+  [0.06,0.13,0.2,0.75,0.83,0.9,0.96].forEach(function(t, k){
+    var x = W*t, y = yChan - 40 - (k%3)*7, r = 15 + (k%3)*4;
+    svg += '<rect x="'+(x-2.5)+'" y="'+y+'" width="5" height="'+(r+8)+'" fill="#B9A288" opacity=".55"></rect>'+
+           '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#B9D3AE" opacity=".75"></circle>';
+  });
+  /* tia nắng xiên từ mặt trời xuống tán */
+  svg += '<g opacity=".7">'+
+    '<path d="M '+(W-110)+' 104 L '+(W*0.3)+' '+(yChan-60)+' L '+(W*0.44)+' '+(yChan-60)+' Z" fill="url(#menNang)"></path>'+
+    '<path d="M '+(W-110)+' 104 L '+(W*0.5)+' '+(yChan-60)+' L '+(W*0.6)+' '+(yChan-60)+' Z" fill="url(#menNang)"></path>'+
+    '<path d="M '+(W-110)+' 104 L '+(W*0.66)+' '+(yChan-60)+' L '+(W*0.73)+' '+(yChan-60)+' Z" fill="url(#menNang)"></path>'+
+    '</g>';
+
   /* mấy cánh chim cho bầu trời có sự sống */
   [[W*0.2,170,1],[W*0.26,150,.75],[W*0.76,132,.85]].forEach(function(b){
     svg += '<path d="M '+(b[0]-11*b[2])+' '+b[1]+' q '+(5.5*b[2])+' '+(-6*b[2])+' '+(11*b[2])+' 0 '+
@@ -794,9 +824,10 @@ async function veCay(SB){
 
   /* ---- tán lá: nhiều lớp chồng nhau cho dày và có khối ---- */
   /* lớp sau, sẫm nhất */
+  var toNgang = 1.16;                          /* tán trải ngang như cổ thụ */
   function cumTan(ds, mau, mo){
     ds.forEach(function(c){
-      svg += '<circle cx="'+(xThan + c[0]*toTan)+'" cy="'+(yNgon + c[1]*toTan)+'" r="'+(c[2]*toTan)+'" fill="'+mau+'"'+
+      svg += '<circle cx="'+(xThan + c[0]*toTan*toNgang)+'" cy="'+(yNgon + c[1]*toTan)+'" r="'+(c[2]*toTan)+'" fill="'+mau+'"'+
              (mo ? ' opacity="'+mo+'"' : '')+'></circle>';
     });
   }
@@ -810,15 +841,39 @@ async function veCay(SB){
   /* viền tán lởm chởm cho khỏi tròn trùng trục */
   [[-186,30],[-170,-16],[-128,-62],[-72,-104],[-10,-124],[52,-112],[112,-82],[158,-40],[186,8],
    [168,64],[118,104],[54,122],[-14,124],[-80,110],[-140,80]].forEach(function(c, k){
-    svg += '<circle cx="'+(xThan+c[0]*toTan)+'" cy="'+(yNgon+c[1]*toTan)+'" r="'+((k%2?17:23)*toTan)+'" fill="'+
+    svg += '<circle cx="'+(xThan+c[0]*toTan*toNgang)+'" cy="'+(yNgon+c[1]*toTan)+'" r="'+((k%2?17:23)*toTan)+'" fill="'+
            (k%3===0?"#43A06D":(k%3===1?"#348A5B":"#2F7F55"))+'"></circle>';
   });
   svg += '</g>';
 
+  /* ---- nhánh chính: cây cổ thụ thì thân phải chẽ ra mấy nhánh lớn ---- */
+  function nhanhTo(x0,y0,cx,cy,x1,y1,w0,w1){
+    return '<path d="M '+(x0-w0/2)+' '+y0+
+      ' Q '+(cx-w0*0.3)+' '+cy+' '+(x1-w1/2)+' '+y1+
+      ' L '+(x1+w1/2)+' '+y1+
+      ' Q '+(cx+w0*0.3)+' '+cy+' '+(x0+w0/2)+' '+y0+' Z" fill="url(#menThan)"></path>';
+  }
+  svg += nhanhTo(xThan-6, yNgon+210, xThan-150, yNgon+128, xThan-268, yNgon+16, 38, 12);
+  svg += nhanhTo(xThan+6, yNgon+210, xThan+150, yNgon+128, xThan+268, yNgon+16, 38, 12);
+  svg += nhanhTo(xThan-5, yNgon+248, xThan-110, yNgon+216, xThan-196, yNgon+150, 30, 10);
+  svg += nhanhTo(xThan+5, yNgon+248, xThan+110, yNgon+216, xThan+196, yNgon+150, 30, 10);
+  svg += nhanhTo(xThan-4, yNgon+150, xThan-78, yNgon+70,  xThan-126, yNgon-62, 26, 9);
+  svg += nhanhTo(xThan+4, yNgon+150, xThan+78, yNgon+70,  xThan+126, yNgon-62, 26, 9);
+  svg += nhanhTo(xThan, yNgon+120, xThan+10, yNgon+20, xThan+16, yNgon-110, 22, 8);
+
   /* ---- gò đất, cỏ, hoa ---- */
   svg += '<path d="M 0 '+(yGoc+34)+' C '+(W*0.22)+' '+(yGoc-10)+', '+(W*0.78)+' '+(yGoc-10)+', '+W+' '+(yGoc+34)+
          ' L '+W+' '+H+' L 0 '+H+' Z" fill="url(#menCo)"></path>';
-  svg += '<ellipse cx="'+xThan+'" cy="'+(yGoc+16)+'" rx="206" ry="26" fill="#8A3F11" opacity=".09"></ellipse>';
+  svg += '<ellipse cx="'+(xThan-70)+'" cy="'+(yGoc+22)+'" rx="300" ry="30" fill="#6B8F5A" opacity=".16"></ellipse>';
+  svg += '<ellipse cx="'+xThan+'" cy="'+(yGoc+16)+'" rx="214" ry="26" fill="#8A3F11" opacity=".11"></ellipse>';
+  /* cỏ cao mọc quanh gốc, che chân thân cho đỡ trơ */
+  [-150,-116,-84,-56,56,84,116,150].forEach(function(dx, k){
+    var x = xThan + dx, y = yGoc + 20 + (k%2)*5;
+    svg += '<g stroke="#6E9A5B" stroke-width="4" stroke-linecap="round" fill="none" opacity=".9">'+
+      '<path d="M '+x+' '+y+' q -6 -18 -14 -26"></path>'+
+      '<path d="M '+x+' '+y+' q 2 -22 0 -32"></path>'+
+      '<path d="M '+x+' '+y+' q 7 -18 15 -25"></path></g>';
+  });
   var buiCo = [-420,-330,-260,-196,196,258,330,418];
   buiCo.forEach(function(dx, k){
     var x = xThan + dx * (W/1160), y = yGoc + 24 + (k%3)*7;
@@ -850,16 +905,20 @@ async function veCay(SB){
   svg += '<text class="chu-re" x="'+xThan+'" y="'+(yGoc+100)+'" text-anchor="middle">Nuôi bằng 5% lợi nhuận sau thuế của Midu MenaQ7</text>';
 
   /* ---- thân ---- */
-  svg += '<path d="M '+(xThan-42)+' '+(yGoc+6)+
-         ' C '+(xThan-26)+' '+(yGoc-180)+', '+(xThan-20)+' '+(yNgon+150)+', '+(xThan-14)+' '+yNgon+
-         ' L '+(xThan+14)+' '+yNgon+
-         ' C '+(xThan+20)+' '+(yNgon+150)+', '+(xThan+26)+' '+(yGoc-180)+', '+(xThan+42)+' '+(yGoc+6)+
+  svg += '<path d="M '+(xThan-54)+' '+(yGoc+6)+
+         ' C '+(xThan-34)+' '+(yGoc-200)+', '+(xThan-26)+' '+(yNgon+150)+', '+(xThan-17)+' '+yNgon+
+         ' L '+(xThan+17)+' '+yNgon+
+         ' C '+(xThan+26)+' '+(yNgon+150)+', '+(xThan+34)+' '+(yGoc-200)+', '+(xThan+54)+' '+(yGoc+6)+
          ' Z" fill="url(#menThan)"></path>';
   /* bạnh gốc hai bên cho cây đứng vững */
-  svg += '<path d="M '+(xThan-40)+' '+(yGoc+6)+' C '+(xThan-68)+' '+(yGoc-2)+', '+(xThan-88)+' '+(yGoc+10)+', '+(xThan-100)+' '+(yGoc+22)+
-         ' L '+(xThan-34)+' '+(yGoc+22)+' Z" fill="#7A370F"></path>'+
-         '<path d="M '+(xThan+40)+' '+(yGoc+6)+' C '+(xThan+68)+' '+(yGoc-2)+', '+(xThan+88)+' '+(yGoc+10)+', '+(xThan+100)+' '+(yGoc+22)+
-         ' L '+(xThan+34)+' '+(yGoc+22)+' Z" fill="#7A370F"></path>';
+  svg += '<path d="M '+(xThan-52)+' '+(yGoc+6)+' C '+(xThan-86)+' '+(yGoc-4)+', '+(xThan-112)+' '+(yGoc+8)+', '+(xThan-130)+' '+(yGoc+24)+
+         ' L '+(xThan-42)+' '+(yGoc+24)+' Z" fill="#7A370F"></path>'+
+         '<path d="M '+(xThan+52)+' '+(yGoc+6)+' C '+(xThan+86)+' '+(yGoc-4)+', '+(xThan+112)+' '+(yGoc+8)+', '+(xThan+130)+' '+(yGoc+24)+
+         ' L '+(xThan+42)+' '+(yGoc+24)+' Z" fill="#7A370F"></path>'+
+         '<path d="M '+(xThan-30)+' '+(yGoc+6)+' C '+(xThan-46)+' '+(yGoc+2)+', '+(xThan-58)+' '+(yGoc+12)+', '+(xThan-66)+' '+(yGoc+24)+
+         ' L '+(xThan-24)+' '+(yGoc+24)+' Z" fill="#6B2F0C"></path>'+
+         '<path d="M '+(xThan+30)+' '+(yGoc+6)+' C '+(xThan+46)+' '+(yGoc+2)+', '+(xThan+58)+' '+(yGoc+12)+', '+(xThan+66)+' '+(yGoc+24)+
+         ' L '+(xThan+24)+' '+(yGoc+24)+' Z" fill="#6B2F0C"></path>';
   /* vệt sáng và vân vỏ */
   svg += '<path d="M '+(xThan-13)+' '+(yGoc-30)+' C '+(xThan-8)+' '+(yGoc-220)+', '+(xThan-6)+' '+(yNgon+160)+', '+(xThan-4)+' '+(yNgon+40)+
          '" stroke="#FFFFFF" stroke-opacity=".15" stroke-width="7" fill="none" stroke-linecap="round"></path>';
@@ -870,6 +929,17 @@ async function veCay(SB){
     svg += '<path d="M '+(xThan - r*0.5)+' '+y+' q '+(r*0.45)+' '+(k%2?7:-7)+' '+(r*0.9)+' 0"></path>';
   });
   svg += '</g>';
+
+  /* vài cụm lá đè lên gốc nhánh, để tán có lớp trước lớp sau chứ không phẳng */
+  [[-148,-16,56],[148,-16,56],[-74,-64,46],[74,-64,46],[0,-96,52],
+   [-206,24,38],[206,24,38],[-30,-30,40],[42,-26,38]].forEach(function(c, k){
+    svg += '<circle cx="'+(xThan+c[0]*toTan*toNgang*0.88)+'" cy="'+(yNgon+c[1]*toTan*0.82)+'" r="'+(c[2]*toTan*0.82)+'" fill="'+
+           (k%2?"#348A5B":"#43A06D")+'"></circle>';
+  });
+  [[-120,-54,24],[112,-50,22],[-20,-86,20],[56,-82,18]].forEach(function(c){
+    svg += '<circle cx="'+(xThan+c[0]*toTan*toNgang*0.88)+'" cy="'+(yNgon+c[1]*toTan*0.82)+'" r="'+(c[2]*toTan*0.82)+
+           '" fill="#5FB884" opacity=".8"></circle>';
+  });
 
   /* chữ trong tán: đặt trên đỉnh thân nên không bị thân che */
   svg += '<text class="ngon-chu" x="'+xThan+'" y="'+(yNgon-50)+'" text-anchor="middle">Nâng cao tầm vóc</text>'+
@@ -948,6 +1018,7 @@ async function veCay(SB){
     var n = g.be.length;
     var soHang = (n > 3) ? 2 : 1;
     var moiHang = Math.ceil(n / soHang);
+    var rQ = hep ? 27 : 19;                      /* quả to hơn trên điện thoại cho dễ bấm */
     var mepLa = cumY + 80;                       /* mép dưới vòm lá */
     var le = hep ? 60 : 68;                      /* chừa hai bên cho tên bé */
     var khoang = Math.min(hep ? (n > 3 ? 96 : 84) : (n > 3 ? 104 : 86),
@@ -961,7 +1032,7 @@ async function veCay(SB){
     }
     var diem = g.be.map(function(c, j){
       var hang = Math.floor(j / moiHang), cot = j % moiHang;
-      return { c:c, x: hangX[hang] + cot * khoang, y: mepLa - 6, yQ: mepLa + 30 + hang * 64 };
+      return { c:c, x: hangX[hang] + cot * khoang, y: mepLa - 6, yQ: mepLa + 30 + hang * (hep ? 76 : 64) };
     });
 
     /* anh chị em ruột: một cuống chung chia ra mấy quả */
@@ -990,15 +1061,23 @@ async function veCay(SB){
       var yQ = d.yQ;
       svg += '<g class="qua" style="animation-delay:'+(0.05*(i*4+j)).toFixed(2)+'s" '+
         'onclick="location.href=\'/be/'+esc(d.c.slug)+'\'" role="link" tabindex="0">'+
-        (d.chung ? '' : '<path d="M '+d.x+' '+d.y+' L '+d.x+' '+(yQ-13)+'" stroke="#8A3F11" stroke-width="2.5"></path>')+
-        '<ellipse cx="'+d.x+'" cy="'+(yQ+18)+'" rx="15" ry="4.5" fill="#8A3F11" opacity=".16"></ellipse>'+
-        '<ellipse cx="'+(d.x+9)+'" cy="'+(yQ-17)+'" rx="11" ry="5.4" fill="#3E9467" transform="rotate(-24 '+(d.x+9)+' '+(yQ-17)+')"></ellipse>'+
-        '<path d="M '+(d.x+1)+' '+(yQ-18)+' q 6 -2 12 -4" stroke="#2F7F55" stroke-width="1.4" fill="none"></path>'+
-        '<circle class="than-qua" cx="'+d.x+'" cy="'+yQ+'" r="19" fill="url(#menQua)" stroke="#FFF7F0" stroke-width="3.4"></circle>'+
-        '<ellipse cx="'+(d.x-5)+'" cy="'+(yQ-6)+'" rx="5" ry="3" fill="#FFFFFF" opacity=".55" transform="rotate(-32 '+(d.x-5)+' '+(yQ-6)+')"></ellipse>'+
-        '<text x="'+d.x+'" y="'+(yQ + 37)+'" text-anchor="middle">'+esc(tenNgan(d.c.ten))+'</text>'+
+        (d.chung ? '' : '<path d="M '+d.x+' '+d.y+' L '+d.x+' '+(yQ-rQ*0.7)+'" stroke="#8A3F11" stroke-width="2.5"></path>')+
+        '<ellipse cx="'+d.x+'" cy="'+(yQ+rQ-1)+'" rx="'+(rQ*0.8)+'" ry="4.5" fill="#8A3F11" opacity=".16"></ellipse>'+
+        '<ellipse cx="'+(d.x+rQ*0.47)+'" cy="'+(yQ-rQ*0.9)+'" rx="'+(rQ*0.58)+'" ry="'+(rQ*0.28)+'" fill="#3E9467" '+
+          'transform="rotate(-24 '+(d.x+rQ*0.47)+' '+(yQ-rQ*0.9)+')"></ellipse>'+
+        '<circle class="than-qua" cx="'+d.x+'" cy="'+yQ+'" r="'+rQ+'" fill="url(#menQua)" stroke="#FFF7F0" stroke-width="'+(rQ*0.18)+'"></circle>'+
+        '<ellipse cx="'+(d.x-rQ*0.26)+'" cy="'+(yQ-rQ*0.32)+'" rx="'+(rQ*0.26)+'" ry="'+(rQ*0.16)+'" fill="#FFFFFF" opacity=".55" '+
+          'transform="rotate(-32 '+(d.x-rQ*0.26)+' '+(yQ-rQ*0.32)+')"></ellipse>'+
+        '<text x="'+d.x+'" y="'+(yQ + rQ + 18)+'" text-anchor="middle">'+esc(tenNgan(d.c.ten))+'</text>'+
         '<title>'+esc(d.c.ten)+(d.c.dia_ban?' \u00b7 '+esc(d.c.dia_ban):'')+'</title></g>';
     });
+  });
+
+  /* lá rơi lác đác cho khung cảnh có chuyển động */
+  [[0.2,0.62],[0.27,0.74],[0.76,0.58],[0.83,0.7],[0.68,0.8]].forEach(function(t, k){
+    var x = W*t[0], y = yGoc*t[1];
+    svg += '<ellipse cx="'+x+'" cy="'+y+'" rx="11" ry="5" fill="'+(k%2?"#6FA981":"#E8914A")+'" opacity=".55" '+
+           'transform="rotate('+(k%2?34:-28)+' '+x+' '+y+')"></ellipse>';
   });
 
   /* ---- biển tên ở gốc ---- */
