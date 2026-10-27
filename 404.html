@@ -104,14 +104,17 @@
   .the-moc{background:var(--trang);border:1px solid var(--vien);border-radius:20px;
     box-shadow:var(--bong);overflow:hidden}
   .chang.lon .the-moc{box-shadow:var(--bong-sau)}
-  .the-moc .hinh{display:block;position:relative;background:var(--cam-nhat2);overflow:hidden}
+  /* Khung ảnh của mốc: cùng một quy tắc với trang quản lý.
+     Chặng lớn ảnh rộng 560, chặng nhỏ ảnh rộng 300, đều là ảnh ngang 16:9. */
+  .the-moc .hinh{display:block;position:relative;background:var(--cam-nhat2);overflow:hidden;
+    aspect-ratio:16/9;margin:14px 20px 0}
   .the-moc .hinh img,.the-moc .hinh svg{display:block;width:100%;height:100%;object-fit:cover}
-  .chang.lon .hinh{aspect-ratio:16/9}
-  .chang.nho .the-moc{display:flex;align-items:stretch}
-  .chang.nho .hinh{flex:0 0 136px;align-self:stretch;min-height:124px}
-  .chang.nho .chu-moc{flex:1;min-width:0}
-  .chu-moc{padding:18px 20px}
-  .chang.lon .chu-moc{padding:20px 22px 22px}
+  .the-moc .hinh{border-radius:14px}
+  .chang.lon .hinh{max-width:560px}
+  .chang.nho .hinh{max-width:300px}
+  @media(max-width:560px){.the-moc .hinh{margin:12px 16px 0}.chang.nho .hinh{max-width:100%}}
+  .chu-moc{padding:16px 20px 18px}
+  .chang.lon .chu-moc{padding:16px 22px 22px}
   .chu-moc .ngay{font-family:var(--mono);font-size:12.5px;color:var(--cam-dam);font-weight:600}
   .chu-moc h3{font-size:17.5px;margin:3px 0 6px;color:var(--cam-toi);letter-spacing:-.015em}
   .chang.lon .chu-moc h3{font-size:20px}

@@ -493,20 +493,26 @@
     padding-top:14px;border-top:1px solid var(--vien)}
   .giai i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px}
 
-  .hinh-moc{display:block;position:relative;margin-top:12px;max-width:460px;border-radius:14px;overflow:hidden;
+  .hinh-moc{display:block;position:relative;margin-top:12px;max-width:560px;border-radius:14px;overflow:hidden;
     border:1px solid var(--vien);background:var(--cam-nhat2)}
+  .hinh-moc.nho{max-width:300px}
+  @media(max-width:560px){.hinh-moc.nho{max-width:100%}}
   .hinh-moc img,.hinh-moc svg{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
   a.hinh-moc{transition:transform .14s ease,box-shadow .14s ease}
   a.hinh-moc:hover{transform:translateY(-2px);box-shadow:var(--bong)}
   .hinh-moc.ve{opacity:.92}
   .hinh-moc .nhan-ve{position:absolute;left:10px;bottom:10px;background:rgba(255,255,255,.88);
     color:var(--ink-4);font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--r-pill)}
-  .them-anh{display:inline-block;margin-top:10px;background:var(--trang);border:1px dashed var(--cam-vien);
-    border-radius:var(--r-pill);padding:8px 16px;font-size:13px;font-weight:700;color:var(--cam-dam);
-    cursor:pointer;font-family:inherit;transition:all .14s ease}
-  .them-anh:hover{border-style:solid;border-color:var(--cam);background:var(--cam-nhat)}
+  .nut-moc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;
+    padding-top:12px;border-top:1px solid var(--vien)}
+  .nut-moc .btn-anh{border-style:dashed;border-color:var(--cam-vien);color:var(--cam-dam)}
+  .nut-moc .btn-anh:hover{border-style:solid}
+  .trang-thai-ck{margin-left:auto;font-size:12px;font-weight:700;color:var(--ink-4)}
+  .nhan-o{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.11em;
+    color:var(--ink-4);margin-bottom:5px}
+  .cong-tac{margin-left:auto}
   .edit .acts .sw{white-space:nowrap;flex:0 0 auto}
-  .hang-tai{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:9px}
+  .hang-tai{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:10px}
   .nut-tai{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(180deg,#E8822F,#D4661F);
     color:#fff;border-radius:var(--r-pill);padding:9px 18px;font-size:13.5px;font-weight:700;cursor:pointer;
     box-shadow:0 2px 4px rgba(170,90,30,.18),0 8px 18px rgba(222,113,39,.2);transition:all .16s ease}
@@ -1325,6 +1331,8 @@ function tranhMoc(k){
   return '<svg class="tranh" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'+
     (TRANH[k] || TRANH["mac-dinh"])+'</svg>';
 }
+/* Chặng lớn: giống hệt trang công khai, để hai bên nhìn như nhau. */
+var MOC_LON = {"khao-sat":1, "quyet-dinh":1, "giao-hang":1, "theo-doi":1, "tu-lieu":1};
 TRANH["benh-ly"] = TRANH["ket-qua-xn"];
 TRANH["xet-nghiem"] = TRANH["tai-tro-xn"];
 TRANH["tai-danh-gia"] = TRANH["theo-doi"];
@@ -1777,9 +1785,10 @@ function phanHanhTrinh(c){
       var hinhMoc=tuLieu.filter(function(u){var l=loaiLink(u).loai;return l==="anh"||l==="youtube";});
       var nutMoc=tuLieu.filter(function(u){var l=loaiLink(u).loai;return l!=="anh"&&l!=="youtube";});
       if(coDL||hinhMoc.length){
+        var coLon=(MOC_LON[st.k]||hinhMoc.length)?"":" nho";
         if(hinhMoc.length){
           var kDau=loaiLink(hinhMoc[0]);
-          h+='<a class="hinh-moc" href="'+esc(hinhMoc[0])+'" target="_blank" rel="noopener">'+
+          h+='<a class="hinh-moc'+coLon+'" href="'+esc(hinhMoc[0])+'" target="_blank" rel="noopener">'+
              '<img src="'+esc(kDau.loai==="youtube"?kDau.anh:hinhMoc[0])+'" alt="Ảnh mốc '+esc(st.t)+'" loading="lazy">'+
              (kDau.loai==="youtube"?'<span class="dau-video">&#9654;</span>':'')+'</a>';
           if(hinhMoc.length>1){
@@ -1791,10 +1800,8 @@ function phanHanhTrinh(c){
             }).join("")+'</div>';
           }
         }else{
-          h+='<div class="hinh-moc ve">'+tranhMoc(st.k)+
+          h+='<div class="hinh-moc ve'+coLon+'">'+tranhMoc(st.k)+
              '<span class="nhan-ve">Tranh minh hoạ, chưa có ảnh thật</span></div>';
-          if(duocSua&&!dangSua)
-            h+='<button class="them-anh" data-mo="'+khoaO+'">&#43; Thêm ảnh cho mốc này</button>';
         }
       }
       if(nutMoc.length){
@@ -1807,7 +1814,12 @@ function phanHanhTrinh(c){
     }
     if(duocSua){
       if(!dangSua){
-        h+='<button class="mo-sua" data-mo="'+khoaO+'">'+(st.list?"✎ Thêm hoặc sửa":(coDL?"✎ Sửa mốc này":"✎ Nhập mốc này"))+'</button>';
+        var chuaAnh=(cls!=="gon")&&!st.list&&!tuLieu.length;
+        h+='<div class="nut-moc">'+
+          '<button class="btn btn-sm" data-mo="'+khoaO+'">'+
+            (st.list?"Thêm hoặc sửa":(coDL?"Sửa mốc này":"Nhập mốc này"))+'</button>'+
+          (chuaAnh?'<button class="btn btn-sm btn-anh" data-mo="'+khoaO+'">Thêm ảnh</button>':'')+
+          '</div>';
       }else if(st.list){
         h+='<div class="edit"><div class="frow">'+
           '<input type="date" data-nr="ngay" aria-label="Ngày">'+
@@ -1820,16 +1832,19 @@ function phanHanhTrinh(c){
           '<button class="btn btn-sm" data-mo="">Xong</button></div></div>';
       }else{
         h+='<div class="edit two">'+
-          '<input type="date" data-mf="ngay" value="'+esc(m&&m.ngay&&m.ngay.length>=10?String(m.ngay).slice(0,10):"")+'" aria-label="Ngày">'+
-          '<textarea data-mf="noi_dung" placeholder="Nội dung mốc này" aria-label="Nội dung">'+esc((m&&m.noi_dung)||"")+'</textarea>'+
+          '<div><label class="nhan-o" for="ngay-'+esc(st.k)+'">Ngày</label>'+
+          '<input id="ngay-'+esc(st.k)+'" type="date" data-mf="ngay" value="'+esc(m&&m.ngay&&m.ngay.length>=10?String(m.ngay).slice(0,10):"")+'" aria-label="Ngày"></div>'+
+          '<div><label class="nhan-o" for="nd-'+esc(st.k)+'">Chuyện gì đã diễn ra</label>'+
+          '<textarea id="nd-'+esc(st.k)+'" data-mf="noi_dung" placeholder="Viết ngắn, một hai câu là đủ" aria-label="Nội dung">'+esc((m&&m.noi_dung)||"")+'</textarea></div>'+
           '<div class="o-anh-moc"><label for="anh-'+esc(st.k)+'">Ảnh và video của mốc này</label>'+
           '<input id="anh-'+esc(st.k)+'" type="text" data-mf="anh" value="'+esc(m&&m.anh?m.anh.join(", "):"")+'" '+
           'placeholder="Dán link ảnh hoặc link YouTube, nhiều cái thì cách nhau bằng dấu phẩy" aria-label="Ảnh và video của mốc">'+
           nutTaiAnh("anh-"+st.k, "moc/"+c.id+"/"+st.k)+
-          '<div class="hint">Chọn ảnh từ máy là xong, hệ thống tự điền đường dẫn. Ảnh đầu tiên là ảnh hiện to của mốc.</div></div>'+
+          '<div class="hint">Chọn ảnh từ máy là xong, hệ thống tự điền đường dẫn. Ảnh đầu tiên là ảnh hiện to của mốc.<br>'+
+          '<b>Ảnh ngang, nên 1600 x 900 trở lên</b>, khung cắt theo tỉ lệ 16:9 nên để chủ thể vào giữa. Mỗi ảnh tối đa 8 MB.</div></div>'+
           '<div class="acts"><button class="btn btn-main btn-sm" data-luumoc="'+st.k+'" data-cid="'+esc(c.id)+'">Lưu mốc</button>'+
           '<button class="btn btn-sm" data-mo="">Thôi</button>'+
-          (QUYEN.cong_khai&&!st.kin?'<label class="sw"><input type="checkbox" data-mf="cong_khai"'+(m&&m.cong_khai?" checked":"")+'> Hiện trên link công khai</label>':'')+
+          (QUYEN.cong_khai&&!st.kin?'<label class="sw cong-tac"><input type="checkbox" data-mf="cong_khai"'+(m&&m.cong_khai?" checked":"")+'><span>Hiện trên link công khai</span></label>':'')+
           '</div></div>';
       }
     }
@@ -1887,7 +1902,8 @@ function phanTuLieu(c){
   if(c.anh_bia||dsAnh.length){
     if(c.anh_bia)h+='<div class="anh-bia">'+(loaiLink(c.anh_bia).loai==="anh"?'<img src="'+esc(c.anh_bia)+'" alt="Ảnh đại diện của bé">':'<div style="width:112px">'+oMedia(c.anh_bia,"ảnh đại diện")+'</div>')+
       '<div><div class="hint"><b>Ảnh đại diện</b></div>'+
-      '<p class="hint" style="margin-top:4px;max-width:40ch">Ảnh này hiện trên link công khai khi bật. Chỉ đặt ảnh đã có đồng ý hình ảnh của gia đình.</p></div></div>';
+      '<p class="hint" style="margin-top:4px;max-width:44ch">Ảnh này hiện trên link công khai khi bật. Chỉ đặt ảnh đã có đồng ý hình ảnh của gia đình.<br>'+
+      '<b>Ảnh dọc, nên 900 x 1200</b>, khung cắt theo tỉ lệ 3:4.</p></div></div>';
     if(dsAnh.length)h+='<div class="anh-hs">'+dsAnh.map(function(u,ai){
       var nx=(suaTT()&&oMo==="anh"&&duocXoa())?'<button class="btn btn-sm btn-bad" data-xoaanh="'+ai+'" data-cid="'+esc(c.id)+'">Xoá</button>':'';
       return oMedia(u, null, nx);
