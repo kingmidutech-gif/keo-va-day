@@ -496,6 +496,16 @@
     padding-top:14px;border-top:1px solid var(--vien)}
   .giai i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px}
 
+  .anh-moc{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:9px;margin-top:11px}
+  .anh-moc a{display:block;position:relative;border-radius:12px;overflow:hidden;
+    border:1px solid var(--vien);background:var(--cam-nhat2);transition:transform .14s ease,box-shadow .14s ease}
+  .anh-moc a:hover{transform:translateY(-2px);box-shadow:var(--bong)}
+  .anh-moc img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+  .anh-moc .dau-video{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:26px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+  .chua-anh{margin-top:10px;font-size:12.5px;color:var(--ink-4);background:var(--cam-nhat);
+    border:1px dashed var(--cam-vien);border-radius:11px;padding:9px 12px}
+
   .subtabs{align-items:center}
   .nhay-nhan{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;
     color:var(--ink-4);margin-right:4px}
@@ -1422,7 +1432,7 @@ function trangCa(id){
 
   /* Hiện hết trên một trang, không phải bấm qua lại từng thẻ. */
   h+='<div class="phan-hs" id="phan-thong-tin">'+phanThongTin(c,d)+'</div>'+
-     '<div class="phan-hs" id="phan-hanh-trinh"><h2 class="tua-phan">Hành trình</h2>'+phanHanhTrinh(c)+'</div>'+
+     '<div class="phan-hs" id="phan-hanh-trinh">'+phanHanhTrinh(c)+'</div>'+
      '<div class="phan-hs" id="phan-lieu-trinh">'+khoiLieuTrinh(c)+'</div>'+
      '<div class="phan-hs" id="phan-tu-lieu">'+phanTuLieu(c)+'</div>';
   return h;
@@ -1594,12 +1604,28 @@ function phanHanhTrinh(c){
             (duocSua&&dangSua&&duocXoa()?'<button class="btn btn-sm btn-bad" data-xoadong="'+st.list+'" data-rid="'+r.id+'">Xoá</button>':'')+'</div>';
         }).join("")+'</div>';
       }
-      if(m&&m.anh&&m.anh.length){
-        h+='<div class="links">'+m.anh.map(function(u){
+      /* Ảnh và video của mốc hiện thành hình thật, phần còn lại mới để dạng nút. */
+      var tuLieu=(m&&m.anh&&m.anh.length)?m.anh:[];
+      var hinhMoc=tuLieu.filter(function(u){var l=loaiLink(u).loai;return l==="anh"||l==="youtube";});
+      var nutMoc=tuLieu.filter(function(u){var l=loaiLink(u).loai;return l!=="anh"&&l!=="youtube";});
+      if(hinhMoc.length){
+        h+='<div class="anh-moc">'+hinhMoc.map(function(u){
           var k=loaiLink(u);
-          var nhan=k.loai==="youtube"?"Video YouTube":(k.loai==="facebook"?"Bài Facebook":(k.loai==="o-mang"?k.ten:(k.ten||"link")));
+          return '<a href="'+esc(u)+'" target="_blank" rel="noopener"'+(k.loai==="youtube"?' class="co-video"':'')+'>'+
+            '<img src="'+esc(k.loai==="youtube"?k.anh:u)+'" alt="Ảnh mốc '+esc(st.t)+'" loading="lazy">'+
+            (k.loai==="youtube"?'<span class="dau-video">&#9654;</span>':'')+'</a>';
+        }).join("")+'</div>';
+      }
+      if(nutMoc.length){
+        h+='<div class="links">'+nutMoc.map(function(u){
+          var k=loaiLink(u);
+          var nhan=k.loai==="facebook"?"Bài Facebook":(k.loai==="o-mang"?k.ten:(k.ten||"link"));
           if(k.loai==="o-mang")return '<span style="background:var(--cam-nhat);border:1px solid var(--vien);border-radius:9px;padding:6px 11px;font-size:12.5px">🗂 '+esc(nhan)+'</span>';
-          return '<a href="'+esc(u)+'" target="_blank" rel="noopener">↗ '+esc(nhan)+'</a>';}).join("")+'</div>';
+          return '<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(nhan)+' ↗</a>';}).join("")+'</div>';
+      }
+      /* Mốc đã có nội dung mà chưa có ảnh nào thì nhắc một dòng. */
+      if(coDL && !tuLieu.length && duocSua && !dangSua){
+        h+='<div class="chua-anh">Chưa có ảnh cho mốc này. Dán link ảnh ở nút dưới.</div>';
       }
     }
     if(duocSua){
