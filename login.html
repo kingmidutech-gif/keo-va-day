@@ -1052,11 +1052,43 @@ async function sua(bang,dieu_kien,thay_doi){
   return {ok:true,data:r.data};
 }
 var KHO_ANH="anh-cong-khai";
+/* Ảnh chụp bằng điện thoại thường 4 đến 8 MB, trong khi khung hiện ra chỉ rộng 560px.
+   Nén ngay trên máy trước khi tải lên: nhẹ kho, nhẹ đường truyền, người xem đỡ phải chờ. */
+function nenAnh(file, canhToiDa, chatLuong){
+  return new Promise(function(xong){
+    if(!/^image\/(jpe?g|png|webp)$/i.test(file.type) || file.size < 260*1024) return xong(file);
+    var duong=URL.createObjectURL(file), anh=new Image();
+    anh.onload=function(){
+      try{
+        var ti=Math.min(1, canhToiDa/Math.max(anh.width, anh.height));
+        var w=Math.max(1, Math.round(anh.width*ti)), h=Math.max(1, Math.round(anh.height*ti));
+        var khung=document.createElement("canvas");
+        khung.width=w; khung.height=h;
+        var but=khung.getContext("2d");
+        but.fillStyle="#FFFFFF"; but.fillRect(0,0,w,h);
+        but.drawImage(anh,0,0,w,h);
+        khung.toBlob(function(cuc){
+          URL.revokeObjectURL(duong);
+          if(!cuc || cuc.size>=file.size) return xong(file);
+          xong(new File([cuc], String(file.name||"anh").replace(/\.[^.]+$/,"")+".jpg", {type:"image/jpeg"}));
+        }, "image/jpeg", chatLuong);
+      }catch(e){ URL.revokeObjectURL(duong); xong(file); }
+    };
+    anh.onerror=function(){ URL.revokeObjectURL(duong); xong(file); };
+    anh.src=duong;
+  });
+}
+function coChu(byte){
+  if(byte>=1048576)return (byte/1048576).toFixed(1).replace(".",",")+" MB";
+  return Math.round(byte/1024)+" KB";
+}
 /* Tải thẳng ảnh từ máy lên kho ảnh, trả về đường dẫn công khai. */
 async function taiAnhLen(file, thuMuc){
   if(CHE_DO==="mau")return {ok:false,loi:"Bản xem thử không tải ảnh lên được."};
   if(!/^image\//.test(file.type))return {ok:false,loi:file.name+" không phải ảnh."};
-  if(file.size>8*1024*1024)return {ok:false,loi:file.name+" nặng quá 8 MB."};
+  var truoc=file.size;
+  file=await nenAnh(file, 1800, 0.82);
+  if(file.size>8*1024*1024)return {ok:false,loi:file.name+" nặng quá 8 MB, nén rồi vẫn còn "+coChu(file.size)+"."};
   var duoi=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
   var ten=(thuMuc||"chung")+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+duoi;
   var r=await SB.storage.from(KHO_ANH).upload(ten,file,{cacheControl:"31536000",upsert:false});
@@ -1069,7 +1101,7 @@ async function taiAnhLen(file, thuMuc){
     return {ok:false,loi:m};
   }
   var u=SB.storage.from(KHO_ANH).getPublicUrl(ten);
-  return {ok:true,url:(u.data&&u.data.publicUrl)||""};
+  return {ok:true, url:(u.data&&u.data.publicUrl)||"", truoc:truoc, sau:file.size};
 }
 /* Xem trước mấy tấm ảnh đang có trong ô, để dán vào là thấy ngay. */
 function veXemTruocAnh(chuoi){
@@ -2045,7 +2077,8 @@ function phanHanhTrinh(c){
           nutTaiAnh("anh-"+st.k, "moc/"+c.id+"/"+st.k)+
           '<div class="xt-anh" data-xtanh="anh-'+esc(st.k)+'">'+veXemTruocAnh(m&&m.anh?m.anh.join(", "):"")+'</div>'+
           '<div class="hint">Dán link hoặc chọn ảnh từ máy là hiện ra ngay bên dưới. Ảnh đầu tiên là ảnh hiện to của mốc.<br>'+
-          '<b>Ảnh ngang, nên 1600 x 900 trở lên</b>, khung cắt theo tỉ lệ 16:9 nên để chủ thể vào giữa. Mỗi ảnh tối đa 8 MB.</div></div>'+
+          '<b>Ảnh ngang, nên 1600 x 900 trở lên</b>, khung cắt theo tỉ lệ 16:9 nên để chủ thể vào giữa.<br>'+
+          'Ảnh to mấy cũng được, hệ thống tự thu về cạnh dài 1800px rồi mới cất, nên không lo đầy kho.</div></div>'+
           '<div class="acts"><button class="btn btn-main btn-sm" data-luumoc="'+st.k+'" data-cid="'+esc(c.id)+'">Lưu mốc</button>'+
           '<button class="btn btn-sm" data-mo="">Thôi</button>'+
           (QUYEN.cong_khai&&!st.kin?'<label class="sw cong-tac"><input type="checkbox" data-mf="cong_khai"'+(m&&m.cong_khai?" checked":"")+'><span>Hiện trên link công khai</span></label>':'')+
@@ -2765,10 +2798,11 @@ document.addEventListener("change",async function(ev){
     var ds=[].slice.call(el.files||[]);
     if(!ds.length||!o)return;
     if(bao){bao.textContent="Đang tải "+ds.length+" ảnh...";bao.className="tai-bao";}
-    var xong=[], hong=[];
+    var xong=[], hong=[], coTruoc=0, coSau=0;
     for(var i=0;i<ds.length;i++){
       var kq=await taiAnhLen(ds[i], thuMuc);
-      if(kq.ok)xong.push(kq.url); else hong.push(kq.loi);
+      if(kq.ok){ xong.push(kq.url); coTruoc+=kq.truoc||0; coSau+=kq.sau||0; }
+      else hong.push(kq.loi);
     }
     if(xong.length){
       var cu=o.value.trim();
@@ -2777,7 +2811,8 @@ document.addEventListener("change",async function(ev){
     var oXt=document.querySelector('[data-xtanh="'+idO+'"]');
     if(oXt)oXt.innerHTML=veXemTruocAnh(o.value);
     if(bao){
-      bao.textContent=(xong.length?"Đã thêm "+xong.length+" ảnh. Bấm Lưu để giữ lại. ":"")+
+      var noiCo=(coSau&&coTruoc>coSau*1.2)?(" Nén "+coChu(coTruoc)+" còn "+coChu(coSau)+"."):"";
+      bao.textContent=(xong.length?"Đã thêm "+xong.length+" ảnh."+noiCo+" Bấm Lưu để giữ lại. ":"")+
                       (hong.length?"Không tải được: "+hong.join("; "):"");
       bao.className="tai-bao "+(hong.length?"loi":"ok");
     }
