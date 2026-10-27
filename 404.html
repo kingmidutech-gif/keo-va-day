@@ -895,11 +895,35 @@ async function veCay(SB){
     svg += '<circle cx="'+x+'" cy="'+(y-22)+'" r="3.2" fill="#FFF3E0"></circle></g>';
   });
 
-  /* ---- rễ ---- */
-  svg += '<g stroke="#7A370F" stroke-opacity=".4" fill="none" stroke-linecap="round">';
-  [[-172,42],[-96,62],[96,62],[172,42],[-36,70],[36,70]].forEach(function(r){
-    svg += '<path d="M '+xThan+' '+yGoc+' Q '+(xThan+r[0]*0.5)+' '+(yGoc+r[1]*0.6)+', '+(xThan+r[0])+' '+(yGoc+r[1])+'" '+
-           'stroke-width="'+(Math.abs(r[0])>120?5:9)+'"></path>';
+  /* ---- rễ: vẽ thành khối nổi trên mặt đất, không phải mấy nét kẻ ---- */
+  function reNoi(dx, dy, w0, w1, mau){
+    var x0 = xThan, y0 = yGoc - 6;
+    var x1 = xThan + dx, y1 = yGoc + dy;
+    var cx = xThan + dx*0.45, cy = yGoc + dy*0.2;
+    return '<path d="M '+(x0-w0/2)+' '+y0+
+      ' Q '+(cx-w1*0.6)+' '+(cy-w1*0.5)+' '+(x1-w1/2)+' '+y1+
+      ' Q '+(x1)+' '+(y1+w1*0.9)+' '+(x1+w1/2)+' '+y1+
+      ' Q '+(cx+w1*0.6)+' '+(cy+w1*0.5)+' '+(x0+w0/2)+' '+y0+' Z" fill="'+mau+'"></path>';
+  }
+  /* ụ đất nổi quanh gốc cho cây có chỗ bám */
+  svg += '<path d="M '+(xThan-240)+' '+(yGoc+30)+' Q '+(xThan-120)+' '+(yGoc-10)+' '+xThan+' '+(yGoc-6)+
+         ' Q '+(xThan+120)+' '+(yGoc-10)+' '+(xThan+240)+' '+(yGoc+30)+
+         ' L '+(xThan+240)+' '+(yGoc+46)+' L '+(xThan-240)+' '+(yGoc+46)+' Z" fill="#C9AE8E" opacity=".5"></path>';
+  svg += '<g>';
+  [[-236,52,30,13],[-166,64,34,15],[-92,74,38,17],[92,74,38,17],[166,64,34,15],[236,52,30,13]].forEach(function(r){
+    svg += reNoi(r[0], r[1], r[2], r[3], "#6B2F0C");
+  });
+  [[-196,46,26,11],[-128,58,30,13],[-44,70,32,14],[44,70,32,14],[128,58,30,13],[196,46,26,11]].forEach(function(r){
+    svg += reNoi(r[0], r[1], r[2], r[3], "#8E4414");
+  });
+  [[-86,88,26,12],[0,96,30,13],[86,88,26,12]].forEach(function(r){
+    svg += reNoi(r[0], r[1], r[2], r[3], "#7A370F");
+  });
+  /* vệt sáng trên lưng mấy cái rễ trước */
+  [[-128,54],[44,64],[-44,64],[128,54]].forEach(function(r){
+    svg += '<path d="M '+(xThan+r[0]*0.35)+' '+(yGoc+r[1]*0.35)+' Q '+(xThan+r[0]*0.7)+' '+(yGoc+r[1]*0.62)+' '+
+           (xThan+r[0]*0.92)+' '+(yGoc+r[1]*0.9)+'" stroke="#FFFFFF" stroke-opacity=".12" stroke-width="5" '+
+           'fill="none" stroke-linecap="round"></path>';
   });
   svg += '</g>';
   svg += '<text class="chu-re" x="'+xThan+'" y="'+(yGoc+100)+'" text-anchor="middle">Nuôi bằng 5% lợi nhuận sau thuế của Midu MenaQ7</text>';
@@ -956,7 +980,7 @@ async function veCay(SB){
     var duong = "M "+xDau+" "+yCanh+" C "+c1x+" "+c1y+", "+c2x+" "+c2y+", "+xCuoi+" "+yCuoi;
 
     /* cành thon dần: gốc cành dày, ngọn cành mảnh */
-    var w0 = 24, w1 = 7;
+    var w0 = 30, w1 = 8;
     var thon = "M "+xDau+" "+(yCanh - w0/2)+
       " C "+c1x+" "+(c1y - w0*0.42)+", "+c2x+" "+(c2y - w1/2)+", "+xCuoi+" "+(yCuoi - w1/2)+
       " L "+xCuoi+" "+(yCuoi + w1/2)+
@@ -964,42 +988,61 @@ async function veCay(SB){
     svg += '<path d="'+thon+'" fill="#7A370F" opacity=".3" transform="translate(0 4)"></path>'+
            '<path d="'+thon+'" fill="url(#menCanh)"></path>';
 
-    /* vòm lá dồn về ngọn cành, thon dần về phía thân, cho ra dáng một tán cây con */
     var cumX = xCuoi + huong * 8, cumY = yCuoi - 34;
-    function laTai(t, dx, dy, r, mau, mo){
-      var pv = diemTrenCanh(xDau, yCanh, c1x, c1y, c2x, c2y, xCuoi, yCuoi, t);
-      svg += '<circle cx="'+(pv.x + huong*dx)+'" cy="'+(pv.y + dy)+'" r="'+r+'" fill="'+mau+'"'+
-             (mo ? ' opacity="'+mo+'"' : '')+'></circle>';
+    function diemCanh(t){ return diemTrenCanh(xDau, yCanh, c1x, c1y, c2x, c2y, xCuoi, yCuoi, t); }
+
+    /* Cành chẽ ra ba nhánh thay vì một que thẳng có cục lá ở đầu. */
+    var pChe = diemCanh(0.58), pChe2 = diemCanh(0.76);
+    var nTren = { x: pChe.x + huong*86,  y: pChe.y - 104 };
+    var nDuoi = { x: pChe2.x + huong*72, y: pChe2.y + 22 };
+    function nhanhCon(p0, p1, w0, w1){
+      var cx = (p0.x + p1.x)/2 + huong*10, cy = (p0.y + p1.y)/2 - 14;
+      return '<path d="M '+(p0.x-w0/2)+' '+p0.y+
+        ' Q '+(cx-w1*0.4)+' '+cy+' '+(p1.x-w1/2)+' '+p1.y+
+        ' L '+(p1.x+w1/2)+' '+p1.y+
+        ' Q '+(cx+w1*0.4)+' '+cy+' '+(p0.x+w0/2)+' '+p0.y+' Z" fill="url(#menCanh)"></path>';
     }
-    [[1.0,12,-42,88],[0.93,4,-30,70],[0.85,0,-20,52],[0.74,-2,-12,34]].forEach(function(v){
-      laTai(v[0], v[1], v[2], v[3], "#2A6E4A");
-    });
-    [[1.0,4,-60,66],[0.94,-2,-48,52],[0.86,-4,-34,38],[1.0,22,-18,44]].forEach(function(v){
-      laTai(v[0], v[1], v[2], v[3], "#348A5B");
-    });
-    [[1.0,-8,-68,40],[0.92,-10,-58,30],[0.82,-10,-44,21]].forEach(function(v){
-      laTai(v[0], v[1], v[2], v[3], "#43A06D");
-    });
-    [[1.0,-16,-80,22],[0.93,-18,-70,16]].forEach(function(v){
-      laTai(v[0], v[1], v[2], v[3], "#5FB884", ".85");
+    svg += nhanhCon(pChe, nTren, 15, 6);
+    svg += nhanhCon(pChe2, nDuoi, 12, 5);
+    /* nhánh tăm cho rậm */
+    [[0.46,-1,22,-34],[0.68,1,24,26],[0.88,-1,26,-30]].forEach(function(nh){
+      var pn = diemCanh(nh[0]);
+      svg += '<path d="M '+pn.x+' '+pn.y+' q '+(huong*nh[2]*0.5)+' '+(nh[3]*0.5)+' '+(huong*nh[2])+' '+nh[3]+
+             '" stroke="#8E4414" stroke-width="3.5" fill="none" stroke-linecap="round"></path>';
     });
 
-    /* nhánh con mọc ra từ cành, cho rậm */
-    [[0.42, -1],[0.66, 1],[0.84, -1]].forEach(function(nh){
-      var pn = diemTrenCanh(xDau, yCanh, c1x, c1y, c2x, c2y, xCuoi, yCuoi, nh[0]);
-      svg += '<path d="M '+pn.x+' '+pn.y+' q '+(huong*16)+' '+(nh[1]*18)+' '+(huong*30)+' '+(nh[1]*30)+
-             '" stroke="#8E4414" stroke-width="4" fill="none" stroke-linecap="round"></path>';
+    /* Tán của cành: nhiều cụm rải trên ba nhánh, dẹt và lệch, không phải một quả bóng tròn. */
+    function cumLa(x, y, r, mau, mo){
+      svg += '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+mau+'"'+(mo?' opacity="'+mo+'"':'')+'></circle>';
+    }
+    var ngon = { x: xCuoi, y: yCuoi };
+    /* lớp sau, sẫm */
+    [[ngon,10,-26,62],[ngon,-34,-8,44],[nTren,6,-6,52],[nTren,-36,12,36],[nDuoi,4,-10,40],[nDuoi,-32,4,28],
+     [pChe,10,-44,34],[pChe2,6,-40,30]].forEach(function(v){
+      cumLa(v[0].x + huong*v[1], v[0].y + v[2], v[3], "#2A6E4A");
+    });
+    /* lớp giữa */
+    [[ngon,2,-46,46],[ngon,-20,-22,34],[nTren,-4,-24,40],[nTren,-30,-6,27],[nDuoi,-2,-26,30],
+     [pChe,2,-58,25],[pChe2,-2,-54,22]].forEach(function(v){
+      cumLa(v[0].x + huong*v[1], v[0].y + v[2], v[3], "#348A5B");
+    });
+    /* lớp trước, sáng */
+    [[ngon,-10,-62,30],[nTren,-14,-40,26],[nDuoi,-10,-40,20],[ngon,22,-40,22]].forEach(function(v){
+      cumLa(v[0].x + huong*v[1], v[0].y + v[2], v[3], "#43A06D");
+    });
+    [[ngon,-20,-74,16],[nTren,-22,-52,14]].forEach(function(v){
+      cumLa(v[0].x + huong*v[1], v[0].y + v[2], v[3], "#5FB884", ".85");
     });
 
-    /* lá mọc dọc cành */
-    [[0.3,-32],[0.46,-24],[0.6,-34],[0.74,-26],[0.88,-34],[0.95,-20]].forEach(function(l, k){
-      var pl = diemTrenCanh(xDau, yCanh, c1x, c1y, c2x, c2y, xCuoi, yCuoi, l[0]);
+    /* lá rời mọc dọc cành cho đỡ cứng */
+    [[0.34,-30],[0.5,-24],[0.64,-34],[0.8,-26]].forEach(function(l, k){
+      var pl = diemCanh(l[0]);
       var goc = (huong > 0 ? -34 : 34) + (k % 2 ? 18 : -12);
       var mau = [ "#2F7F55", "#3E9467", "#4FAC79" ][k % 3];
       var lx = pl.x, ly = pl.y + l[1];
       svg += '<g transform="rotate('+goc+' '+lx+' '+ly+')">'+
-        '<ellipse cx="'+lx+'" cy="'+ly+'" rx="'+(k%2?21:25)+'" ry="'+(k%2?10:12)+'" fill="'+mau+'"></ellipse>'+
-        '<path d="M '+(lx-(k%2?19:23))+' '+ly+' L '+(lx+(k%2?19:23))+' '+ly+'" stroke="#FFFFFF" '+
+        '<ellipse cx="'+lx+'" cy="'+ly+'" rx="'+(k%2?20:24)+'" ry="'+(k%2?9:11)+'" fill="'+mau+'"></ellipse>'+
+        '<path d="M '+(lx-(k%2?18:22))+' '+ly+' L '+(lx+(k%2?18:22))+' '+ly+'" stroke="#FFFFFF" '+
         'stroke-opacity=".3" stroke-width="1.6"></path></g>';
     });
 
@@ -1081,11 +1124,12 @@ async function veCay(SB){
   });
 
   /* ---- biển tên ở gốc ---- */
-  svg += '<g><rect x="'+(xThan-108)+'" y="'+(yGoc-38)+'" width="216" height="50" rx="25" fill="#5E2708" opacity=".25" '+
-         'transform="translate(0 4)"></rect>'+
-         '<rect x="'+(xThan-108)+'" y="'+(yGoc-38)+'" width="216" height="50" rx="25" fill="#6E3009" '+
-         'stroke="#FFD9B5" stroke-opacity=".35" stroke-width="2"></rect>'+
-         '<text class="chu-goc" x="'+xThan+'" y="'+(yGoc-12)+'" text-anchor="middle">Midu MenaQ7</text></g>';
+  var yBien = yGoc - 186;
+  svg += '<g><rect x="'+(xThan-112)+'" y="'+yBien+'" width="224" height="52" rx="26" fill="#4A1E05" opacity=".3" '+
+         'transform="translate(0 5)"></rect>'+
+         '<rect x="'+(xThan-112)+'" y="'+yBien+'" width="224" height="52" rx="26" fill="#6E3009" '+
+         'stroke="#FFD9B5" stroke-opacity=".4" stroke-width="2"></rect>'+
+         '<text class="chu-goc" x="'+xThan+'" y="'+(yBien+34)+'" text-anchor="middle">Midu MenaQ7</text></g>';
   svg += '</svg>';
 
   var tongBe = ca.length;

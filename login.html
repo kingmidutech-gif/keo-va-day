@@ -244,7 +244,7 @@
   .stage.gon .sbox{background:transparent;border:0;padding:5px 0 5px 2px}
   .stage.gon .stop h3{font-size:13.5px;font-weight:600;color:var(--ink-4)}
   .stage.gon .swho,.stage.gon .swait{display:none}
-  .stage.gon .mk{top:11px;width:22px;left:-40px}
+  .stage.gon .mk{top:11px;width:14px;left:-22px}
   /* nút mở ô nhập */
   .mo-sua{background:none;border:0;color:var(--cam-dam);font-weight:700;font-size:12.5px;cursor:pointer;padding:4px 0;margin-top:6px}
   .mo-sua:hover{text-decoration:underline}
@@ -252,11 +252,11 @@
   .chuyen p{font-size:15px;line-height:1.7;color:var(--ink-2);white-space:pre-wrap}
   .chuyen .tt{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
 
-  .chang-dau{display:flex;gap:11px;align-items:baseline;flex-wrap:wrap;margin:22px 0 6px;padding-left:52px}
+  .chang-dau{display:flex;gap:11px;align-items:baseline;flex-wrap:wrap;margin:22px 0 6px;padding-left:40px}
   .chang-dau:first-child{margin-top:4px}
   .chang-dau .so{width:26px;height:26px;border-radius:50%;background:var(--cam);color:#fff;
     display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12.5px;
-    margin-left:-52px;margin-right:0}
+    margin-left:-40px;margin-right:0}
   .chang-dau.xong .so{background:var(--ok)}
   .chang-dau h3{font-family:var(--dis);font-size:16.5px;color:var(--cam-toi);margin:0}
   .chang-dau .mo{font-size:12.5px;color:var(--ink-4)}
@@ -280,17 +280,14 @@
     padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--cam-toi);cursor:pointer;font-family:inherit}
   .viec-nho:hover{background:var(--cam);color:#fff;border-color:var(--cam)}
   .viec-nho .phu{font-weight:500;opacity:.75;font-size:12.5px}
-  .journey{position:relative;padding-left:52px}
-  .journey::before{content:"";position:absolute;left:21px;top:0;bottom:0;width:11px;
-    background:repeating-linear-gradient(to bottom,var(--cam-vien) 0 1px,transparent 1px 7px)}
-  .journey::after{content:"";position:absolute;left:21px;top:0;bottom:0;width:2px;background:var(--cam-vien)}
+  .journey{position:relative;padding-left:40px}
+  .journey::after{content:"";position:absolute;left:13px;top:4px;bottom:4px;width:2px;
+    border-radius:2px;background:var(--cam-vien)}
   .stage{position:relative;margin-bottom:14px}
-  .stage .mk{position:absolute;left:-44px;top:14px;width:30px;height:2px;background:var(--cam-vien);z-index:1}
-  .stage .no{position:absolute;left:-52px;top:5px;width:22px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--ink-4);z-index:2}
+  .stage .mk{position:absolute;left:-28px;top:16px;width:20px;height:2px;background:var(--cam-vien);z-index:1}
   .stage.done .mk{background:var(--ok);height:3px}
   .stage.now .mk{background:var(--cam);height:3px}
-  .stage.done .no{color:var(--ok);font-weight:700}
-  .stage.now .no{color:var(--cam-dam);font-weight:700}
+
   .sbox{background:var(--trang);border:1px solid var(--vien);border-radius:var(--r-sm);padding:13px 16px}
   .stage.done .sbox{border-left:4px solid var(--ok)}
   .stage.now .sbox{border-left:4px solid var(--cam)}
@@ -509,6 +506,15 @@
     cursor:pointer;font-family:inherit;transition:all .14s ease}
   .them-anh:hover{border-style:solid;border-color:var(--cam);background:var(--cam-nhat)}
   .edit .acts .sw{white-space:nowrap;flex:0 0 auto}
+  .hang-tai{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:9px}
+  .nut-tai{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(180deg,#E8822F,#D4661F);
+    color:#fff;border-radius:var(--r-pill);padding:9px 18px;font-size:13.5px;font-weight:700;cursor:pointer;
+    box-shadow:0 2px 4px rgba(170,90,30,.18),0 8px 18px rgba(222,113,39,.2);transition:all .16s ease}
+  .nut-tai:hover{transform:translateY(-1px);box-shadow:0 4px 8px rgba(170,90,30,.2),0 12px 24px rgba(222,113,39,.26)}
+  .tai-bao{font-size:12.5px;font-weight:600;color:var(--ink-4)}
+  .tai-bao.ok{color:var(--ok)}
+  .tai-bao.loi{color:var(--khong)}
+
   .o-anh-moc{grid-column:1/-1}
   .o-anh-moc label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;
     letter-spacing:.11em;color:var(--ink-4);margin-bottom:5px}
@@ -924,6 +930,33 @@ async function sua(bang,dieu_kien,thay_doi){
   if(!r.data||!r.data.length)
     return {ok:false,loi:"Không lưu được. Tài khoản của anh chị có thể chưa đủ quyền cho việc này."};
   return {ok:true,data:r.data};
+}
+var KHO_ANH="anh-cong-khai";
+/* Tải thẳng ảnh từ máy lên kho ảnh, trả về đường dẫn công khai. */
+async function taiAnhLen(file, thuMuc){
+  if(CHE_DO==="mau")return {ok:false,loi:"Bản xem thử không tải ảnh lên được."};
+  if(!/^image\//.test(file.type))return {ok:false,loi:file.name+" không phải ảnh."};
+  if(file.size>8*1024*1024)return {ok:false,loi:file.name+" nặng quá 8 MB."};
+  var duoi=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
+  var ten=(thuMuc||"chung")+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+duoi;
+  var r=await SB.storage.from(KHO_ANH).upload(ten,file,{cacheControl:"31536000",upsert:false});
+  if(r.error){
+    var m=String(r.error.message||"");
+    if(/bucket not found/i.test(m))
+      return {ok:false,loi:"Kho ảnh chưa được bật trên hệ thống. Báo lại để mở kho rồi tải."};
+    if(/row-level security|not authorized|403/i.test(m))
+      return {ok:false,loi:"Tài khoản của anh chị chưa có quyền tải ảnh lên kho."};
+    return {ok:false,loi:m};
+  }
+  var u=SB.storage.from(KHO_ANH).getPublicUrl(ten);
+  return {ok:true,url:(u.data&&u.data.publicUrl)||""};
+}
+/* Nút chọn ảnh dùng chung cho các ô dán link. */
+function nutTaiAnh(oDich, thuMuc){
+  return '<div class="hang-tai"><label class="nut-tai">'+
+    '<input type="file" accept="image/*" multiple hidden data-taianh="'+esc(oDich)+'" data-thumuc="'+esc(thuMuc||"chung")+'">'+
+    '<span>&#128247; Tải ảnh từ máy</span></label>'+
+    '<span class="tai-bao" data-baotai="'+esc(oDich)+'"></span></div>';
 }
 async function xoa(bang,dieu_kien){
   if(CHE_DO==="mau"){
@@ -1708,7 +1741,7 @@ function phanHanhTrinh(c){
     var idx=STAGES.indexOf(st);
     var khoaO="moc:"+st.k;
     if(st.kin&&!QUYEN.xem_nhay_cam){
-      h+='<div class="stage gon"><span class="no">'+String(idx+1).padStart(2,"0")+'</span><span class="mk"></span>'+
+      h+='<div class="stage gon"><span class="mk"></span>'+
          '<div class="sbox"><div class="stop"><h3>'+esc(st.t)+' · nhóm quyền của anh chị không xem được</h3></div></div></div>';
       return;
     }
@@ -1719,7 +1752,7 @@ function phanHanhTrinh(c){
     var cls=coDL?"done":(idx===cho?"now":"todo");
     if(!coDL&&idx!==cho&&!dangSua)cls="gon";
 
-    h+='<div class="stage '+cls+'"><span class="no">'+String(idx+1).padStart(2,"0")+'</span><span class="mk"></span><div class="sbox">'+
+    h+='<div class="stage '+cls+'"><span class="mk"></span><div class="sbox">'+
       '<div class="stop"><h3>'+esc(st.t)+'</h3>'+(m&&m.ngay?'<span class="d">'+fmt(m.ngay)+'</span>':'')+'</div>';
     if(cls!=="gon"){
       h+='<div class="swho">'+esc(st.who)+'</div>';
@@ -1792,7 +1825,8 @@ function phanHanhTrinh(c){
           '<div class="o-anh-moc"><label for="anh-'+esc(st.k)+'">Ảnh và video của mốc này</label>'+
           '<input id="anh-'+esc(st.k)+'" type="text" data-mf="anh" value="'+esc(m&&m.anh?m.anh.join(", "):"")+'" '+
           'placeholder="Dán link ảnh hoặc link YouTube, nhiều cái thì cách nhau bằng dấu phẩy" aria-label="Ảnh và video của mốc">'+
-          '<div class="hint">Ảnh tải lên kho Supabase rồi lấy đường dẫn. Ảnh đầu tiên là ảnh hiện to của mốc.</div></div>'+
+          nutTaiAnh("anh-"+st.k, "moc/"+c.id+"/"+st.k)+
+          '<div class="hint">Chọn ảnh từ máy là xong, hệ thống tự điền đường dẫn. Ảnh đầu tiên là ảnh hiện to của mốc.</div></div>'+
           '<div class="acts"><button class="btn btn-main btn-sm" data-luumoc="'+st.k+'" data-cid="'+esc(c.id)+'">Lưu mốc</button>'+
           '<button class="btn btn-sm" data-mo="">Thôi</button>'+
           (QUYEN.cong_khai&&!st.kin?'<label class="sw"><input type="checkbox" data-mf="cong_khai"'+(m&&m.cong_khai?" checked":"")+'> Hiện trên link công khai</label>':'')+
@@ -1867,6 +1901,7 @@ function phanTuLieu(c){
     else h+='<div class="edit"><div class="frow">'+
       '<input type="text" id="fAnhBia" placeholder="Link ảnh đại diện" value="'+esc(c.anh_bia||"")+'" aria-label="Link ảnh đại diện">'+
       '<input type="text" id="fAnhMoi" placeholder="Link ảnh hồ sơ, thêm từng cái" aria-label="Link ảnh hồ sơ">'+
+      '</div>'+nutTaiAnh("fAnhBia","be/"+c.id)+
       '</div><div class="acts"><button class="btn btn-main" data-luuanh="'+esc(c.id)+'">Lưu ảnh</button>'+
       '<button class="btn" data-mo="">Xong</button>'+
       '<span class="hint">Dán được link ảnh, link YouTube, link Facebook, hoặc đường dẫn ổ Z của công ty. Ảnh hồ sơ không bao giờ ra link công khai.</span></div></div>';
@@ -2390,6 +2425,30 @@ document.addEventListener("click",async function(ev){
 
 document.addEventListener("change",async function(ev){
   var el=ev.target;
+  if(el.hasAttribute&&el.hasAttribute("data-taianh")){
+    var idO=el.getAttribute("data-taianh"), thuMuc=el.getAttribute("data-thumuc");
+    var o=document.getElementById(idO);
+    var bao=document.querySelector('[data-baotai="'+idO+'"]');
+    var ds=[].slice.call(el.files||[]);
+    if(!ds.length||!o)return;
+    if(bao){bao.textContent="Đang tải "+ds.length+" ảnh...";bao.className="tai-bao";}
+    var xong=[], hong=[];
+    for(var i=0;i<ds.length;i++){
+      var kq=await taiAnhLen(ds[i], thuMuc);
+      if(kq.ok)xong.push(kq.url); else hong.push(kq.loi);
+    }
+    if(xong.length){
+      var cu=o.value.trim();
+      o.value=cu?(cu.replace(/,\s*$/,"")+", "+xong.join(", ")):xong.join(", ");
+    }
+    if(bao){
+      bao.textContent=(xong.length?"Đã thêm "+xong.length+" ảnh. Bấm Lưu để giữ lại. ":"")+
+                      (hong.length?"Không tải được: "+hong.join("; "):"");
+      bao.className="tai-bao "+(hong.length?"loi":"ok");
+    }
+    el.value="";
+    return;
+  }
   if(el.hasAttribute&&el.hasAttribute("data-ck-ca")){
     var cCK=getCa(el.getAttribute("data-ck-ca"));
     /* Ca không đạt thì không nêu tên và hoàn cảnh ra ngoài, nên hỏi lại cho chắc. */
