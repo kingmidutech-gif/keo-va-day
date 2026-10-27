@@ -464,6 +464,15 @@
   .empty{border-radius:var(--r);padding:38px 24px;border-style:dashed}
   .foot{margin-top:56px;padding-top:20px}
 
+  .dan-tq{font-size:13.5px;color:var(--ink-4);margin:-4px 0 12px}
+  .kpi.bam{display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;
+    border:1px solid var(--vien);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+  .kpi.bam:hover{transform:translateY(-2px);box-shadow:var(--bong-sau);border-color:var(--cam-vien)}
+  .kpi .mui{display:block;margin-top:9px;font-size:12px;font-weight:700;color:var(--cam-dam);opacity:0;
+    transition:opacity .16s ease}
+  .kpi.bam:hover .mui,.kpi.bam:focus-visible .mui{opacity:1}
+  @media(hover:none){.kpi .mui{opacity:1}}
+
   .hai-loai{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;
     margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--vien)}
   .hai-loai .hint{margin-top:6px;line-height:1.55}
@@ -1008,12 +1017,13 @@ function trangTongQuan(){
   });
   var moi=(D.dang_ky||[]).filter(function(x){return x.trang_thai==="moi";}).length;
   var ck=ca.filter(function(c){return c.cong_khai;}).length;
-  var h='<div class="kpis">'+
-    kpi(ca.length,"Tổng ca","trong "+(D.dot||[]).length+" đợt triển khai","")+
-    kpi(n.dh,"Đã đồng hành","tài trợ 100%, cam kết nhiều năm","ok")+
-    kpi(moi,"Đơn đăng ký mới","từ trang giới thiệu, chờ duyệt","cho")+
-    kpi(ck,"Có link công khai","dùng được cho truyền thông","")+
-    kpi(n.kd,"Không đạt","vẫn nhận quà và sản phẩm","khong")+'</div>';
+  var h='<p class="dan-tq">Bấm vào một ô số để mở đúng danh sách đằng sau nó.</p>'+
+    '<div class="kpis">'+
+    kpi(ca.length,"Tổng ca","trong "+(D.dot||[]).length+" đợt triển khai","",{tab:"ho-so",loc:"all"})+
+    kpi(n.dh,"Đã đồng hành","tài trợ 100%, cam kết nhiều năm","ok",{tab:"ho-so",loc:"dong-hanh"})+
+    kpi(moi,"Đơn đăng ký mới","từ trang giới thiệu, chờ duyệt","cho",{tab:"dang-ky",locdk:"moi"})+
+    kpi(ck,"Có link công khai","dùng được cho truyền thông","",{cuon:"khoi-link"})+
+    kpi(n.kd,"Không đạt","vẫn nhận quà và sản phẩm","khong",{tab:"ho-so",loc:"khong-dat"})+'</div>';
 
   var viec=[];
   (D.dang_ky||[]).filter(function(x){return x.trang_thai==="moi";}).forEach(function(dk){
@@ -1064,7 +1074,7 @@ function trangTongQuan(){
          }).join("")+'</div></details>';
      }).join("")+'</div>':'<div class="card card-pad hint">Không có việc nào đang mở.</div>')+'</section>';
 
-  h+='<section class="sec"><div class="sec-head"><h2>Link công khai đang chạy</h2></div><div class="card card-pad">'+
+  h+='<section class="sec" id="khoi-link"><div class="sec-head"><h2>Link công khai đang chạy</h2></div><div class="card card-pad">'+
     '<p class="hint">Mỗi bé một đường dẫn riêng để gắn vào trang giới thiệu và đem đi truyền thông. Chỉ mốc đã bật công khai mới hiện ra ngoài.</p>';
   var dsCK=ca.filter(function(c){return c.cong_khai;});
   h+= dsCK.length? '<div class="tbl-wrap" style="margin-top:10px"><table class="tbl"><thead><tr><th>Bé</th><th>Đường dẫn</th><th></th></tr></thead><tbody>'+
@@ -1077,7 +1087,15 @@ function trangTongQuan(){
   h+='</div></section></div>';
   return h;
 }
-function kpi(n,l,f,cls){return '<div class="kpi '+cls+'"><div class="n num">'+n+'</div><div class="l">'+esc(l)+'</div><div class="f">'+esc(f)+'</div></div>';}
+function kpi(n,l,f,cls,act){
+  var ruot='<div class="n num">'+n+'</div><div class="l">'+esc(l)+'</div><div class="f">'+esc(f)+'</div>';
+  if(!act)return '<div class="kpi '+cls+'">'+ruot+'</div>';
+  var thuoc=act.tab?' data-tab="'+esc(act.tab)+'"':'';
+  if(act.loc)thuoc+=' data-dat-loc="'+esc(act.loc)+'"';
+  if(act.locdk)thuoc+=' data-dat-locdk="'+esc(act.locdk)+'"';
+  if(act.cuon)thuoc+=' data-cuon="'+esc(act.cuon)+'"';
+  return '<button type="button" class="kpi bam '+cls+'"'+thuoc+'>'+ruot+'<span class="mui">Xem danh sách &rarr;</span></button>';
+}
 
 /* ===================== đơn đăng ký ===================== */
 function trangDangKy(){
@@ -1710,7 +1728,17 @@ function ve(){
 document.addEventListener("click",async function(ev){
   var t=ev.target.closest("[data-tab],[data-tabca],[data-mo],[data-ca],[data-back],[data-delcase],[data-loc],[data-locdk],[data-chep],[data-duyet],[data-daxem],[data-tuchoi],[data-luuca],[data-luumoc],[data-themdong],[data-xoadong],[data-luuchuyen],[data-luuanh],[data-xoaanh],[data-themlt],[data-xoalt],[data-themtt],[data-xoatt],[data-luucv],[data-mau],[data-khoa],#addCase,#themNhom");
   if(!t)return;
-  if(t.hasAttribute("data-tab")){trang=t.getAttribute("data-tab");moCa=null;oMo="";window.scrollTo(0,0);return ve();}
+  if(t.hasAttribute("data-cuon")){
+    var o=document.getElementById(t.getAttribute("data-cuon"));
+    if(o)o.scrollIntoView({behavior:"smooth",block:"start"});
+    return;
+  }
+  if(t.hasAttribute("data-tab")){
+    trang=t.getAttribute("data-tab");moCa=null;oMo="";
+    if(t.hasAttribute("data-dat-loc"))loc=t.getAttribute("data-dat-loc");
+    if(t.hasAttribute("data-dat-locdk"))locDK=t.getAttribute("data-dat-locdk");
+    window.scrollTo(0,0);return ve();
+  }
   if(t.hasAttribute("data-tabca")){tabCa=t.getAttribute("data-tabca");oMo="";return ve();}
   if(t.hasAttribute("data-mo")){oMo=t.getAttribute("data-mo");return ve();}
   if(t.hasAttribute("data-ca")){
