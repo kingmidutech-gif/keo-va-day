@@ -221,8 +221,8 @@
   @media(prefers-reduced-motion:reduce){.qua{animation:none}}
   .qua{cursor:pointer}
   .qua circle{transition:r .15s ease}
-  .qua:hover circle.than-qua{r:21}
-  .qua text{font-family:var(--sans);font-size:14.5px;font-weight:700;fill:var(--cam-toi);
+  .qua:hover circle.than-qua{r:27}
+  .qua text{font-family:var(--sans);font-size:15.5px;font-weight:700;fill:var(--cam-toi);
     paint-order:stroke;stroke:#FDF2EA;stroke-width:3.5;stroke-linejoin:round}
   .chu-nha{font-family:var(--sans);font-size:13px;font-weight:800;fill:#8A3F11}
   @media(max-width:760px){ .chu-nha{font-size:17px} }
@@ -710,6 +710,60 @@ function khongDau(x){
 }
 
 /* ======================= TRANG CÂY ======================= */
+/* Hạt cố định: cây vẽ lại lần nào cũng y như lần nào, không nhảy múa mỗi lần tải. */
+var _hatCay = 20261027;
+function nnCay(){ _hatCay = (_hatCay * 1103515245 + 12345) % 2147483648; return _hatCay / 2147483648; }
+function datLaiHat(){ _hatCay = 20261027; }
+
+/* Một cụm lá: viền gợn như tán thật chứ không tròn trịa. */
+function cumLaHuuCo(cx, cy, r, mau, mo, bet){
+  var n = 13, deo = bet || 0.9, d = "", i, g, rr, x, y, gp, rp;
+  var ban = [];
+  for (i = 0; i < n; i++) ban.push(r * (0.78 + nnCay() * 0.4));
+  for (i = 0; i < n; i++){
+    g = (i / n) * Math.PI * 2;
+    rr = ban[i];
+    x = cx + Math.cos(g) * rr; y = cy + Math.sin(g) * rr * deo;
+    if (i === 0) d = "M " + x.toFixed(1) + " " + y.toFixed(1);
+    else {
+      gp = ((i - 0.5) / n) * Math.PI * 2;
+      rp = (ban[i] + ban[i-1]) / 2 * 1.14;
+      d += " Q " + (cx + Math.cos(gp) * rp).toFixed(1) + " " + (cy + Math.sin(gp) * rp * deo).toFixed(1) +
+           " " + x.toFixed(1) + " " + y.toFixed(1);
+    }
+  }
+  gp = ((n - 0.5) / n) * Math.PI * 2;
+  rp = (ban[0] + ban[n-1]) / 2 * 1.14;
+  d += " Q " + (cx + Math.cos(gp) * rp).toFixed(1) + " " + (cy + Math.sin(gp) * rp * deo).toFixed(1) +
+       " " + (cx + ban[0]).toFixed(1) + " " + cy.toFixed(1) + " Z";
+  return '<path d="' + d + '" fill="' + mau + '"' + (mo ? ' opacity="' + mo + '"' : '') + '></path>';
+}
+
+/* Lá rải trên mặt tán, cho có chất lá chứ không phẳng lì. */
+function laRai(cx, cy, rx, ry, so, mauDs){
+  var ra = "", i, g, k, x, y, goc, c;
+  for (i = 0; i < so; i++){
+    g = nnCay() * Math.PI * 2; k = Math.sqrt(nnCay());
+    x = cx + Math.cos(g) * rx * k; y = cy + Math.sin(g) * ry * k;
+    goc = Math.round(nnCay() * 360); c = 7 + nnCay() * 7;
+    ra += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="' + c.toFixed(1) +
+          '" ry="' + (c * 0.42).toFixed(1) + '" fill="' + mauDs[i % mauDs.length] +
+          '" opacity="' + (0.35 + nnCay() * 0.4).toFixed(2) + '" transform="rotate(' + goc + ' ' +
+          x.toFixed(1) + ' ' + y.toFixed(1) + ')"></ellipse>';
+  }
+  return ra;
+}
+
+/* Một chiếc lá có gân, dùng cho lá mọc dọc cành. */
+function motChiecLa(x, y, dai, goc, mau){
+  var r = dai, b = dai * 0.42;
+  return '<g transform="rotate(' + goc + ' ' + x + ' ' + y + ')">' +
+    '<path d="M ' + (x - r) + ' ' + y + ' Q ' + x + ' ' + (y - b) + ' ' + (x + r) + ' ' + y +
+    ' Q ' + x + ' ' + (y + b) + ' ' + (x - r) + ' ' + y + ' Z" fill="' + mau + '"></path>' +
+    '<path d="M ' + (x - r * 0.84) + ' ' + y + ' L ' + (x + r * 0.84) + ' ' + y +
+    '" stroke="#FFFFFF" stroke-opacity=".32" stroke-width="1.5"></path></g>';
+}
+
 async function veCay(SB){
   document.title = "Những em nhỏ đang được đồng hành · Kéo và Đẩy";
   datTenDau("Những em nhỏ được đồng hành");
@@ -825,10 +879,10 @@ async function veCay(SB){
   /* ---- tán lá: nhiều lớp chồng nhau cho dày và có khối ---- */
   /* lớp sau, sẫm nhất */
   var toNgang = 1.16;                          /* tán trải ngang như cổ thụ */
+  datLaiHat();
   function cumTan(ds, mau, mo){
     ds.forEach(function(c){
-      svg += '<circle cx="'+(xThan + c[0]*toTan*toNgang)+'" cy="'+(yNgon + c[1]*toTan)+'" r="'+(c[2]*toTan)+'" fill="'+mau+'"'+
-             (mo ? ' opacity="'+mo+'"' : '')+'></circle>';
+      svg += cumLaHuuCo(xThan + c[0]*toTan*toNgang, yNgon + c[1]*toTan, c[2]*toTan, mau, mo, 0.92);
     });
   }
   svg += '<g>';
@@ -838,11 +892,18 @@ async function veCay(SB){
           [-72,44,74],[64,46,74],[0,8,98]], "#348A5B");
   cumTan([[-62,-72,48],[-6,-96,42],[54,-76,42],[-120,-30,36],[-12,-32,62],[106,-34,38]], "#43A06D");
   cumTan([[-80,-66,27],[-32,-92,23],[18,-100,19],[-116,-22,19],[62,-86,17]], "#5FB884", ".75");
+  /* lá rải trên mặt tán, cho có chất lá */
+  svg += laRai(xThan, yNgon + 6*toTan, 196*toTan*toNgang, 118*toTan, 150,
+               ["#2A6E4A","#348A5B","#43A06D","#5FB884","#276B47"]);
+  /* nắng rọi từ phía mặt trời, nửa bên kia thì sẫm lại */
+  svg += cumLaHuuCo(xThan + 108*toTan*toNgang, yNgon - 58*toTan, 112*toTan, "#6CC392", ".3", 0.9);
+  svg += cumLaHuuCo(xThan - 128*toTan*toNgang, yNgon + 34*toTan, 104*toTan, "#1F5C3C", ".22", 0.9);
+
   /* viền tán lởm chởm cho khỏi tròn trùng trục */
   [[-186,30],[-170,-16],[-128,-62],[-72,-104],[-10,-124],[52,-112],[112,-82],[158,-40],[186,8],
    [168,64],[118,104],[54,122],[-14,124],[-80,110],[-140,80]].forEach(function(c, k){
-    svg += '<circle cx="'+(xThan+c[0]*toTan*toNgang)+'" cy="'+(yNgon+c[1]*toTan)+'" r="'+((k%2?17:23)*toTan)+'" fill="'+
-           (k%3===0?"#43A06D":(k%3===1?"#348A5B":"#2F7F55"))+'"></circle>';
+    svg += cumLaHuuCo(xThan+c[0]*toTan*toNgang, yNgon+c[1]*toTan, (k%2?17:23)*toTan,
+           (k%3===0?"#43A06D":(k%3===1?"#348A5B":"#2F7F55")), 0, 0.95);
   });
   svg += '</g>';
 
@@ -953,16 +1014,30 @@ async function veCay(SB){
     svg += '<path d="M '+(xThan - r*0.5)+' '+y+' q '+(r*0.45)+' '+(k%2?7:-7)+' '+(r*0.9)+' 0"></path>';
   });
   svg += '</g>';
+  /* vân gỗ chạy dọc thân */
+  svg += '<g stroke="#5E2708" stroke-opacity=".2" fill="none" stroke-linecap="round">';
+  [[-22,-14,2.6],[-9,-6,2],[8,5,2.2],[21,13,2.4]].forEach(function(v){
+    svg += '<path d="M '+(xThan+v[0]*1.3)+' '+(yGoc-20)+
+           ' C '+(xThan+v[0])+' '+(yGoc-260)+', '+(xThan+v[1])+' '+(yNgon+260)+', '+(xThan+v[1]*0.6)+' '+(yNgon+40)+
+           '" stroke-width="'+v[2]+'"></path>';
+  });
+  svg += '</g>';
+  /* nửa thân phía khuất nắng thì sẫm lại */
+  svg += '<path d="M '+(xThan-54)+' '+(yGoc+6)+
+         ' C '+(xThan-34)+' '+(yGoc-200)+', '+(xThan-26)+' '+(yNgon+150)+', '+(xThan-17)+' '+yNgon+
+         ' L '+(xThan-2)+' '+yNgon+
+         ' C '+(xThan-8)+' '+(yNgon+150)+', '+(xThan-14)+' '+(yGoc-200)+', '+(xThan-24)+' '+(yGoc+6)+
+         ' Z" fill="#3D1704" opacity=".22"></path>';
 
   /* vài cụm lá đè lên gốc nhánh, để tán có lớp trước lớp sau chứ không phẳng */
   [[-148,-16,56],[148,-16,56],[-74,-64,46],[74,-64,46],[0,-96,52],
    [-206,24,38],[206,24,38],[-30,-30,40],[42,-26,38]].forEach(function(c, k){
-    svg += '<circle cx="'+(xThan+c[0]*toTan*toNgang*0.88)+'" cy="'+(yNgon+c[1]*toTan*0.82)+'" r="'+(c[2]*toTan*0.82)+'" fill="'+
-           (k%2?"#348A5B":"#43A06D")+'"></circle>';
+    svg += cumLaHuuCo(xThan+c[0]*toTan*toNgang*0.88, yNgon+c[1]*toTan*0.82, c[2]*toTan*0.82,
+           (k%2?"#348A5B":"#43A06D"), 0, 0.92);
   });
   [[-120,-54,24],[112,-50,22],[-20,-86,20],[56,-82,18]].forEach(function(c){
-    svg += '<circle cx="'+(xThan+c[0]*toTan*toNgang*0.88)+'" cy="'+(yNgon+c[1]*toTan*0.82)+'" r="'+(c[2]*toTan*0.82)+
-           '" fill="#5FB884" opacity=".8"></circle>';
+    svg += cumLaHuuCo(xThan+c[0]*toTan*toNgang*0.88, yNgon+c[1]*toTan*0.82, c[2]*toTan*0.82,
+           "#5FB884", ".8", 0.92);
   });
 
   /* chữ trong tán: đặt trên đỉnh thân nên không bị thân che */
@@ -1013,7 +1088,7 @@ async function veCay(SB){
 
     /* Tán của cành: nhiều cụm rải trên ba nhánh, dẹt và lệch, không phải một quả bóng tròn. */
     function cumLa(x, y, r, mau, mo){
-      svg += '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+mau+'"'+(mo?' opacity="'+mo+'"':'')+'></circle>';
+      svg += cumLaHuuCo(x, y, r, mau, mo, 0.9);
     }
     var ngon = { x: xCuoi, y: yCuoi };
     /* lớp sau, sẫm */
@@ -1034,16 +1109,17 @@ async function veCay(SB){
       cumLa(v[0].x + huong*v[1], v[0].y + v[2], v[3], "#5FB884", ".85");
     });
 
+    /* lá rải trên tán của cành */
+    svg += laRai((xCuoi + nTren.x + nDuoi.x)/3, (yCuoi + nTren.y + nDuoi.y)/3 - 24,
+                 96, 62, 34, ["#2A6E4A","#348A5B","#43A06D","#5FB884"]);
+
     /* lá rời mọc dọc cành cho đỡ cứng */
     [[0.34,-30],[0.5,-24],[0.64,-34],[0.8,-26]].forEach(function(l, k){
       var pl = diemCanh(l[0]);
       var goc = (huong > 0 ? -34 : 34) + (k % 2 ? 18 : -12);
       var mau = [ "#2F7F55", "#3E9467", "#4FAC79" ][k % 3];
       var lx = pl.x, ly = pl.y + l[1];
-      svg += '<g transform="rotate('+goc+' '+lx+' '+ly+')">'+
-        '<ellipse cx="'+lx+'" cy="'+ly+'" rx="'+(k%2?20:24)+'" ry="'+(k%2?9:11)+'" fill="'+mau+'"></ellipse>'+
-        '<path d="M '+(lx-(k%2?18:22))+' '+ly+' L '+(lx+(k%2?18:22))+' '+ly+'" stroke="#FFFFFF" '+
-        'stroke-opacity=".3" stroke-width="1.6"></path></g>';
+      svg += motChiecLa(lx, ly, (k%2?20:24), goc, mau);
     });
 
     var phan = String(g.d.ten).split(/\s*·\s*/);
@@ -1061,7 +1137,7 @@ async function veCay(SB){
     var n = g.be.length;
     var soHang = (n > 3) ? 2 : 1;
     var moiHang = Math.ceil(n / soHang);
-    var rQ = hep ? 27 : 19;                      /* quả to hơn trên điện thoại cho dễ bấm */
+    var rQ = hep ? 27 : 24;                      /* quả phải to tương xứng với cây */
     var mepLa = cumY + 80;                       /* mép dưới vòm lá */
     var le = hep ? 60 : 68;                      /* chừa hai bên cho tên bé */
     var khoang = Math.min(hep ? (n > 3 ? 96 : 84) : (n > 3 ? 104 : 86),
