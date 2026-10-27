@@ -501,6 +501,14 @@
   .xong-het .dau-tich{flex:0 0 auto;width:44px;height:44px;border-radius:50%;background:var(--ok-nen);
     color:var(--ok);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800}
 
+  .ban-pt{display:block;position:relative;max-width:440px;margin-top:11px;border-radius:16px;overflow:hidden;
+    border:1px solid var(--vien);background:var(--cam-nhat);box-shadow:var(--bong)}
+  .ban-pt img{display:block;width:100%;height:auto}
+  .ban-pt .xem-to{position:absolute;right:10px;bottom:10px;background:rgba(23,19,16,.72);color:#fff;
+    font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:var(--r-pill);opacity:0;transition:opacity .16s ease}
+  .ban-pt:hover .xem-to{opacity:1}
+  @media(hover:none){.ban-pt .xem-to{opacity:1}}
+
   .dan-tq{font-size:13.5px;color:var(--ink-4);margin:-4px 0 12px}
   .kpi.bam{display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;
     border:1px solid var(--vien);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
@@ -1379,6 +1387,23 @@ function phanThongTin(c,d){
     (c.muc_cao?' · '+esc(c.muc_cao):'')+'</div>'+
     thanh("Chiều cao",c.cao,c.chuan_cao,"cm")+(num(c.chuan_nang)&&num(c.nang)?thanh("Cân nặng",c.nang,c.chuan_nang,"kg"):"")+'</div>';
 
+  /* Bản phân tích thể trạng của Midu: tờ có số đo chuẩn và dự đoán chiều cao tuổi 20.
+     Đây là nguồn gốc của các con số ở trên, nên để ngay cạnh cho đối chiếu. */
+  h+='<div class="gap"><div class="eyebrow">Bản phân tích thể trạng của Midu</div>';
+  if(c.anh_phan_tich){
+    var kPT=loaiLink(c.anh_phan_tich);
+    h+= (kPT.loai==="anh")
+      ? '<a class="ban-pt" href="'+esc(c.anh_phan_tich)+'" target="_blank" rel="noopener">'+
+          '<img src="'+esc(c.anh_phan_tich)+'" alt="Bản phân tích thể trạng của '+esc(c.ten)+'" loading="lazy">'+
+          '<span class="xem-to">Bấm để xem cỡ lớn</span></a>'
+      : '<div style="max-width:220px;margin-top:10px">'+oMedia(c.anh_phan_tich,"bản phân tích thể trạng")+'</div>';
+    h+='<p class="hint" style="margin-top:8px">Tờ này chỉ người trong hệ thống xem được, không ra trang công khai của bé.</p>';
+  }else{
+    h+='<p class="hint" style="margin-top:8px">Chưa gắn bản phân tích. '+
+      (suaCM()?'Tải ảnh tờ phân tích lên kho rồi dán đường dẫn ở <b>Sửa thông tin bé</b>.':'Chuyên môn chưa gắn.')+'</p>';
+  }
+  h+='</div>';
+
   var tb=tienBo(c);
   h+='<div class="gap"><div class="eyebrow">Tiến bộ sau khi đồng hành</div>';
   if(!tb){
@@ -1419,6 +1444,17 @@ function phanThongTin(c,d){
         ip("fCao","Chiều cao",num(c.cao)?c.cao:"")+ip("fNang","Cân nặng",num(c.nang)?c.nang:"")+
         ip("fCCao","Chuẩn WHO cao",num(c.chuan_cao)?c.chuan_cao:"")+ip("fCNang","Chuẩn WHO nặng",num(c.chuan_nang)?c.chuan_nang:"")+
         ip("fDiaBan","Địa bàn",c.dia_ban)+ip("fBy","Chuyên viên đề xuất",c.de_xuat_boi)+
+        ip("fNgaySinh","Ngày sinh, dạng 2013-03-31",c.ngay_sinh?String(c.ngay_sinh).slice(0,10):"")+
+        '<select id="fGioi" aria-label="Giới tính">'+
+          '<option value=""'+(c.gioi_tinh?"":" selected")+'>Chưa rõ giới tính</option>'+
+          '<option value="nam"'+(c.gioi_tinh==="nam"?" selected":"")+'>Nam</option>'+
+          '<option value="nu"'+(c.gioi_tinh==="nu"?" selected":"")+'>Nữ</option></select>'+
+        ip("fNuoi","Người nuôi",c.nguoi_nuoi)+
+        ip("fDD20","Dự đoán tuổi 20, cm",num(c.du_doan_20)?c.du_doan_20:"")+
+        ip("fCaoBo","Chiều cao bố, cm",num(c.cao_bo)?c.cao_bo:"")+
+        ip("fCaoMe","Chiều cao mẹ, cm",num(c.cao_me)?c.cao_me:"")+
+        ip("fMucCao","Mức, ví dụ Dưới chuẩn 3",c.muc_cao)+
+        ip("fAnhPT","Link ảnh bản phân tích thể trạng",c.anh_phan_tich)+
         '<select id="fTT" aria-label="Trạng thái">'+Object.keys(TT).map(function(k){
           return '<option value="'+k+'"'+(c.trang_thai===k?" selected":"")+'>'+TT[k].nhan+'</option>';}).join("")+'</select>'+
         '<select id="fDot" aria-label="Đợt">'+(D.dot||[]).map(function(x){
@@ -1936,10 +1972,14 @@ document.addEventListener("click",async function(ev){
     var cid=t.getAttribute("data-luuca");
     var g=function(id){var e=document.getElementById(id);return e?e.value.trim():"";};
     var gn=function(id){return num(g(id).replace(",","."));};
-    var r2=await ghi("ca",{id:cid,ten:g("fTen"),tuoi:g("fTuoi"),slug:khongDau(g("fSlug")||g("fTen")),
+    var r2=await sua("ca",{id:cid},{ten:g("fTen"),tuoi:g("fTuoi"),slug:khongDau(g("fSlug")||g("fTen")),
       cao:gn("fCao")||null,nang:gn("fNang")||null,chuan_cao:gn("fCCao")||null,chuan_nang:gn("fCNang")||null,
       dia_ban:g("fDiaBan"),de_xuat_boi:g("fBy"),trang_thai:document.getElementById("fTT").value,
-      dot:document.getElementById("fDot").value,gioi_thieu:g("fGT"),ghi_chu:g("fNote")});
+      dot:document.getElementById("fDot").value,gioi_thieu:g("fGT"),ghi_chu:g("fNote"),
+      ngay_sinh:g("fNgaySinh")||null,gioi_tinh:document.getElementById("fGioi").value||null,
+      nguoi_nuoi:g("fNuoi")||null,du_doan_20:gn("fDD20")||null,
+      cao_bo:gn("fCaoBo")||null,cao_me:gn("fCaoMe")||null,
+      muc_cao:g("fMucCao")||null,anh_phan_tich:g("fAnhPT")||null});
     await lamMoi();
     ve();
     var mc=document.getElementById("msgCa");
