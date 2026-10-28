@@ -537,6 +537,7 @@
   .o-anh-moc > label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;
     letter-spacing:.11em;color:var(--ink-4);margin-bottom:5px}
   .o-anh-moc .hint{margin-top:5px}
+  .o-anh-moc > input[type=text]{width:100%;box-sizing:border-box}
 
   .anh-moc{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px;margin-top:9px}
   .anh-moc a{display:block;position:relative;border-radius:12px;overflow:hidden;
@@ -1106,7 +1107,7 @@ async function taiAnhLen(file, thuMuc){
 /* Xem trước mấy tấm ảnh đang có trong ô, để dán vào là thấy ngay. */
 function veXemTruocAnh(chuoi){
   var ds=String(chuoi||"").split(",").map(function(x){return x.trim();}).filter(Boolean);
-  if(!ds.length)return '<span class="xt-trong">Chưa có ảnh nào</span>';
+  if(!ds.length)return "";
   return ds.map(function(u, i){
     var k=loaiLink(u);
     if(k.loai==="anh"||k.loai==="youtube"){
@@ -1880,7 +1881,17 @@ function phanThongTin(c,d){
     h+='<p class="hint" style="margin-top:8px">Tờ này chỉ người trong hệ thống xem được, không ra trang công khai của bé.</p>';
   }else{
     h+='<p class="hint" style="margin-top:8px">Chưa gắn bản phân tích. '+
-      (suaCM()?'Tải ảnh tờ phân tích lên kho rồi dán đường dẫn ở <b>Sửa thông tin bé</b>.':'Chuyên môn chưa gắn.')+'</p>';
+      (suaCM()?'Bấm <b>Tải ảnh từ máy</b> ngay dưới đây.':'Chuyên môn chưa gắn.')+'</p>';
+  }
+  /* Tải tờ phân tích ngay tại chỗ, đỡ phải mở form sửa thông tin bé. */
+  if(suaCM()){
+    h+='<div class="o-anh-moc" style="margin-top:13px">'+
+      '<input type="text" id="fPT-'+esc(c.id)+'" value="'+esc(c.anh_phan_tich||"")+'" '+
+      'placeholder="Dán link ảnh tờ phân tích, hoặc bấm Tải ảnh từ máy" aria-label="Link bản phân tích thể trạng">'+
+      nutTaiAnh("fPT-"+c.id, "be/"+c.id+"/phan-tich")+
+      '<div class="xt-anh" data-xtanh="fPT-'+esc(c.id)+'">'+veXemTruocAnh(c.anh_phan_tich||"")+'</div>'+
+      '<div class="acts"><button class="btn btn-main btn-sm" data-luupt="'+esc(c.id)+'">Lưu bản phân tích</button>'+
+      '<span class="hint">Tờ này chỉ người trong hệ thống xem, không ra trang công khai.</span></div></div>';
   }
   h+='</div>';
 
@@ -2049,11 +2060,12 @@ function phanHanhTrinh(c){
 
     if(duocSua){
       if(!dangSua){
-        var chuaAnh=!st.list&&!tuLieu.length&&(coDL||idx===cho);
+        var chuaAnh=!st.list;
         b+='<div class="nut-moc">'+
           '<button class="btn btn-sm" data-mo="'+khoaO+'">'+
             (st.list?"Thêm hoặc sửa":(coDL?"Sửa mốc này":"Nhập mốc này"))+'</button>'+
-          (chuaAnh?'<button class="btn btn-sm btn-anh" data-mo="'+khoaO+'">Thêm ảnh</button>':'')+
+          (chuaAnh?'<button class="btn btn-sm btn-anh" data-mo="'+khoaO+'">'+
+            (tuLieu.length?"Thêm hoặc sửa ảnh":"Thêm ảnh")+'</button>':'')+
           '</div>';
       }else if(st.list){
         b+='<div class="edit"><div class="frow">'+
@@ -2247,22 +2259,30 @@ function phanTuLieu(c){
       '<p class="hint" style="margin-top:4px;max-width:44ch">Ảnh này hiện trên link công khai khi bật. Chỉ đặt ảnh đã có đồng ý hình ảnh của gia đình.<br>'+
       '<b>Ảnh dọc, nên 900 x 1200</b>, khung cắt theo tỉ lệ 3:4.</p></div></div>';
     if(dsAnh.length)h+='<div class="anh-hs">'+dsAnh.map(function(u,ai){
-      var nx=(suaTT()&&oMo==="anh"&&duocXoa())?'<button class="btn btn-sm btn-bad" data-xoaanh="'+ai+'" data-cid="'+esc(c.id)+'">Xoá</button>':'';
+      var nx=(suaTT()&&duocXoa())?'<button class="btn btn-sm btn-bad" data-xoaanh="'+ai+'" data-cid="'+esc(c.id)+'">Xoá</button>':'';
       return oMedia(u, null, nx);
     }).join("")+'</div>';
   }else{
     h+='<div class="anh-trong">Chưa có ảnh nào. '+
-      (suaTT()?'Tải ảnh lên kho Supabase rồi dán đường dẫn vào đây.':'Marketing chưa gắn ảnh.')+'</div>';
+      (suaTT()?'Dùng ô ngay bên dưới: bấm <b>Tải ảnh từ máy</b> là xong.':'Marketing chưa gắn ảnh.')+'</div>';
   }
+  /* Ô và nút để sẵn, không bắt bấm thêm một lần nữa mới thấy chỗ tải ảnh. */
   if(suaTT()){
-    if(oMo!=="anh")h+='<button class="mo-sua" data-mo="anh">✎ Thêm hoặc sửa ảnh</button>';
-    else h+='<div class="edit"><div class="frow">'+
-      '<input type="text" id="fAnhBia" placeholder="Link ảnh đại diện" value="'+esc(c.anh_bia||"")+'" aria-label="Link ảnh đại diện">'+
-      '<input type="text" id="fAnhMoi" placeholder="Link ảnh hồ sơ, thêm từng cái" aria-label="Link ảnh hồ sơ">'+
-      '</div>'+nutTaiAnh("fAnhBia","be/"+c.id)+
-      '</div><div class="acts"><button class="btn btn-main" data-luuanh="'+esc(c.id)+'">Lưu ảnh</button>'+
-      '<button class="btn" data-mo="">Xong</button>'+
-      '<span class="hint">Dán được link ảnh, link YouTube, link Facebook, hoặc đường dẫn ổ Z của công ty. Ảnh hồ sơ không bao giờ ra link công khai.</span></div></div>';
+    h+='<div class="edit">'+
+      '<div class="o-anh-moc"><label for="fAnhBia">Ảnh đại diện &mdash; ảnh duy nhất ra trang công khai</label>'+
+      '<input type="text" id="fAnhBia" value="'+esc(c.anh_bia||"")+'" placeholder="Dán link ảnh, hoặc bấm Tải ảnh từ máy" aria-label="Link ảnh đại diện">'+
+      nutTaiAnh("fAnhBia","be/"+c.id)+
+      '<div class="xt-anh" data-xtanh="fAnhBia">'+veXemTruocAnh(c.anh_bia||"")+'</div>'+
+      '<div class="hint"><b>Ảnh dọc, nên 900 x 1200</b>, khung cắt theo tỉ lệ 3:4 nên để mặt ở phần trên. '+
+      'Chỉ đặt ảnh đã có đồng ý hình ảnh của gia đình.</div></div>'+
+      '<div class="o-anh-moc" style="margin-top:16px"><label for="fAnhMoi">Ảnh hồ sơ &mdash; chỉ người trong hệ thống xem</label>'+
+      '<input type="text" id="fAnhMoi" placeholder="Dán link, hoặc bấm Tải ảnh từ máy. Nhiều ảnh thì cách nhau bằng dấu phẩy" aria-label="Link ảnh hồ sơ">'+
+      nutTaiAnh("fAnhMoi","be/"+c.id+"/ho-so")+
+      '<div class="xt-anh" data-xtanh="fAnhMoi">'+veXemTruocAnh("")+'</div>'+
+      '<div class="hint">Ảnh ở đây không bao giờ ra link công khai. Dán được cả link YouTube, link Facebook '+
+      'hoặc đường dẫn ổ Z của công ty.</div></div>'+
+      '<div class="acts"><button class="btn btn-main" data-luuanh="'+esc(c.id)+'">Lưu ảnh</button>'+
+      '<span class="hint">Tải ảnh lên rồi vẫn phải bấm <b>Lưu ảnh</b> mới gắn vào hồ sơ.</span></div></div>';
   }
   h+='</div></section>';
   return h+khoiCauChuyen(c)+khoiTruyenThong(c);
@@ -2528,7 +2548,7 @@ function ve(){
 
 /* ===================== sự kiện ===================== */
 document.addEventListener("click",async function(ev){
-  var t=ev.target.closest("[data-tab],[data-tabca],[data-mo],[data-ca],[data-back],[data-delcase],[data-loc],[data-locdk],[data-chep],[data-duyet],[data-daxem],[data-tuchoi],[data-luuca],[data-luumoc],[data-themdong],[data-xoadong],[data-luuchuyen],[data-luuanh],[data-xoaanh],[data-themlt],[data-xoalt],[data-themtt],[data-xoatt],[data-luucv],[data-mau],[data-khoa],#addCase,#themNhom");
+  var t=ev.target.closest("[data-tab],[data-tabca],[data-mo],[data-ca],[data-back],[data-delcase],[data-loc],[data-locdk],[data-chep],[data-duyet],[data-daxem],[data-tuchoi],[data-luuca],[data-luumoc],[data-themdong],[data-xoadong],[data-luuchuyen],[data-luuanh],[data-luupt],[data-xoaanh],[data-themlt],[data-xoalt],[data-themtt],[data-xoatt],[data-luucv],[data-mau],[data-khoa],#addCase,#themNhom");
   if(!t)return;
   if(t.hasAttribute("data-cuonphan")){
     var oPhan=document.getElementById("phan-"+t.getAttribute("data-cuonphan"));
@@ -2696,10 +2716,20 @@ document.addEventListener("click",async function(ev){
     var bia=document.getElementById("fAnhBia").value.trim();
     var moi=document.getElementById("fAnhMoi").value.trim();
     var ds=(cA.anh_ho_so||[]).slice();
-    if(moi)ds.push(moi);
+    moi.split(",").map(function(x){return x.trim();}).filter(Boolean).forEach(function(u){
+      if(ds.indexOf(u)<0)ds.push(u);
+    });
     var ra=await sua("ca",{id:cidA},{anh_bia:bia||null,anh_ho_so:ds});
     if(ra&&ra.ok===false){alert("Chưa lưu được: "+ra.loi);return;}
     oMo="";
+    await lamMoi();
+    return ve();
+  }
+  if(t.hasAttribute("data-luupt")){
+    var cidP=t.getAttribute("data-luupt");
+    var oP=document.getElementById("fPT-"+cidP);
+    var rp=await sua("ca",{id:cidP},{anh_phan_tich:(oP?oP.value.trim():"")||null});
+    if(rp&&rp.ok===false){alert("Chưa lưu được: "+rp.loi);return;}
     await lamMoi();
     return ve();
   }
