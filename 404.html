@@ -1283,6 +1283,23 @@ function gomTheoNha(be){
 }
 
 /* ======================= TRANG BẢN ĐỒ ======================= */
+/* Nơi đoàn thực sự tới trong từng đợt, theo kinh độ và vĩ độ thật.
+   Trọng tâm hình học của tỉnh hay rơi vào vùng núi không có ai ở, nhất là
+   các tỉnh vừa sáp nhập, nên chấm phải đặt theo đây mới đúng chỗ.
+   Thêm đợt mới thì thêm một dòng, khoá là mã đợt trong bảng dot. */
+var NOI_DOT = {
+  "HY": [106.0373, 20.9859],   // Tân Quang, Văn Lâm
+  "NA": [105.5384, 18.8068],   // xã Phúc Lộc
+  "QT": [107.0649, 16.9058],   // giữa Vĩnh Linh, Gio Linh và Triệu Phong
+  "DL": [108.3390, 13.0718]    // xã Dliê Ya, Krông Năng
+};
+function diemDot(bd, ds){
+  var c = bd.chieu; if (!c || !ds.length) return null;
+  var sx = 0, sy = 0;
+  ds.forEach(function(p){ sx += (p[0]-c.lon0)*c.k*c.he; sy += (c.lat1-p[1])*c.he; });
+  return [sx/ds.length, sy/ds.length];
+}
+
 async function veBanDo(SB){
   document.title = "Các em nhỏ trên bản đồ Việt Nam · Kéo và Đẩy";
   datTenDau("Trên bản đồ Việt Nam");
@@ -1386,7 +1403,9 @@ async function veBanDo(SB){
     var el = document.getElementById("tinh-" + khongDau(ten));
     if (!el) return;
     var b = el.getBBox();
-    var tm = (bd.tam || {})[ten];
+    /* Ưu tiên nơi đoàn đã tới. Không có thì mới lấy trọng tâm tỉnh. */
+    var noi = diemDot(bd, theoTinh[ten].dot.map(function(d){ return NOI_DOT[d.ma]; }).filter(Boolean));
+    var tm = noi || (bd.tam || {})[ten];
     var cx = tm ? tm[0] : b.x + b.width/2;
     var cy = tm ? tm[1] : b.y + b.height/2;
     var chuDem = theoTinh[ten].be.length + " em nhỏ";
