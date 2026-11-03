@@ -50,6 +50,10 @@
     overflow:hidden;margin:30px 0 24px}
   .mo-in{padding:38px 36px 34px;display:flex;gap:26px;align-items:center}
   @media(max-width:560px){.mo-in{flex-direction:column;text-align:center;padding:28px 22px 26px}}
+  .mo .chan.trong{flex:0 0 auto;width:136px;height:170px;border-radius:18px;
+    background:linear-gradient(165deg,#FFF8EC,#F7E3CA);display:flex;align-items:center;justify-content:center;
+    font-family:var(--dis);font-weight:800;font-size:58px;color:#C9873F;
+    box-shadow:inset 0 0 0 1px rgba(201,154,32,.24),0 10px 24px rgba(120,80,40,.12)}
   .mo img.chan{width:136px;height:170px;object-fit:cover;border-radius:18px;
     box-shadow:0 10px 26px rgba(120,80,40,.18);flex:0 0 auto}
   .mo .chu{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.2em;color:#C27A3C}
@@ -566,6 +570,7 @@ function veTrang(c, moc, doLai, bai, cungNha){
   /* mở đầu */
   h += '<section class="mo"><div class="mo-in">';
   if (c.anh_bia && laAnh(c.anh_bia)) h += '<img class="chan" src="'+esc(c.anh_bia)+'" alt="Ảnh của '+esc(c.ten)+'">';
+  else h += '<span class="chan trong" aria-hidden="true">'+esc(chuDau(c.ten))+'</span>';
   h += '<div><div class="chu">Chương trình Kéo và Đẩy</div>'+
        '<h1>'+esc(c.ten)+'</h1>'+
        '<div class="noi">'+esc([c.tuoi, c.dia_ban].filter(Boolean).join(" · "))+'</div>'+
@@ -1476,6 +1481,13 @@ function dsChuyenVien(ca){
         '<div class="t">'+esc(n.ten)+'</div>'+
         '<div class="s">Đã giới thiệu '+n.so+' em nhỏ</div></a>';
     }).join("")+'</div></section>';
+}
+
+/* Chữ cái đầu của tên gọi, dùng khi chưa có ảnh. Lấy từ tiếng cuối, vì
+   người Việt gọi nhau bằng tên chứ không bằng họ. */
+function chuDau(ten){
+  var t = String(ten || "?").trim().split(/\s+/);
+  return (t[t.length-1] || "?").charAt(0).toUpperCase();
 }
 
 /* điểm trên đường cong bậc ba, để treo quả đúng trên cành */

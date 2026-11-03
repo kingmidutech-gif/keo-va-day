@@ -513,6 +513,19 @@
   .cong-tac{margin-left:auto}
   .edit .acts .sw{white-space:nowrap;flex:0 0 auto}
   .hang-tai{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:10px}
+  .buoc{margin:8px 0 0;padding-left:21px;font-size:13.5px;color:var(--ink-3);line-height:1.75}
+  .buoc li{margin-bottom:4px}
+  .ct-dong{display:flex;gap:13px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--vien)}
+  .ct-dong:last-child{border-bottom:0;padding-bottom:0}
+  .ct-dau{flex:0 0 auto;min-width:28px;height:28px;border-radius:50%;background:var(--cam-nhat2);
+    border:1px solid var(--cam-vien);color:var(--cam-dam);font-weight:800;font-size:13px;
+    display:flex;align-items:center;justify-content:center;padding:0 7px}
+  .ct-dong.xong .ct-dau{background:#EAF5EC;border-color:#BFDFC6;color:#2F7A43}
+  .ct-ten{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+  .ct-nut{background:var(--cam-nhat);border:1px solid var(--vien);border-radius:var(--r-pill);
+    padding:5px 13px;font-size:12.5px;color:var(--ink-2);cursor:pointer;font-family:inherit}
+  .ct-nut:hover{border-color:var(--cam-vien);color:var(--cam-dam)}
+  .ct-nut.tinh{cursor:default}
   .xt-anh{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-start;margin-top:11px}
   .xt-anh .xt-o{position:relative;display:block;width:104px;border-radius:11px;overflow:hidden;
     border:1px solid var(--vien);background:var(--cam-nhat2)}
@@ -2462,6 +2475,55 @@ function trangQuyTrinh(){
 }
 
 /* ===================== quản trị ===================== */
+/* Mã dự án Supabase, rút từ đường dẫn trong cấu hình, để mở thẳng trang tạo tài khoản. */
+function maDuAn(){
+  var m = /https:\/\/([a-z0-9]+)\.supabase\.co/i.exec(CAU_HINH.url || "");
+  return m ? m[1] : "";
+}
+
+/* Những chỗ dữ liệu còn trống. Để ở trang quản trị cho dễ thấy việc,
+   vì mấy thứ này nằm rải rác trong từng hồ sơ, không ai nhớ hết được. */
+function khoiConThieu(){
+  var ca = D.ca || [], cv = D.chuyen_vien || [], moc = D.moc || [];
+  var ck = ca.filter(function(c){ return c.cong_khai; });
+  var mocCK = {};
+  moc.forEach(function(m){ if(m.cong_khai) mocCK[m.ca_id] = (mocCK[m.ca_id]||0) + 1; });
+
+  function nhom(tua, ds, cach){
+    if(!ds.length) return '<div class="ct-dong xong"><span class="ct-dau">&#10003;</span><div><b>'+esc(tua)+'</b>'+
+      '<div class="hint">Không còn thiếu gì.</div></div></div>';
+    return '<div class="ct-dong"><span class="ct-dau">'+ds.length+'</span><div><b>'+esc(tua)+'</b>'+
+      '<div class="ct-ten">'+ds.map(function(x){
+        return x.id ? '<button class="ct-nut" data-ca="'+esc(x.id)+'">'+esc(x.ten)+'</button>'
+                    : '<span class="ct-nut tinh">'+esc(x.ten)+'</span>';
+      }).join("")+'</div>'+
+      (cach ? '<div class="hint" style="margin-top:5px">'+cach+'</div>' : '')+'</div></div>';
+  }
+
+  var h = '<section class="sec"><div class="sec-head"><h2>Còn thiếu</h2>'+
+    '<span class="sub">những chỗ trống làm trang công khai nhìn dở dang</span></div>'+
+    '<div class="card card-pad">';
+
+  h += nhom("Bé đã bật công khai mà chưa có ảnh đại diện",
+        ck.filter(function(c){ return !c.anh_bia; }),
+        "Mở hồ sơ, thẻ Ảnh của bé, bấm Tải ảnh từ máy. Chưa có ảnh thì trang của con mở ra chỉ có chữ.");
+  h += nhom("Bé đã bật công khai mà chưa có câu chuyện",
+        ck.filter(function(c){ return !(c.cau_chuyen && c.cau_chuyen_tt === "da-duyet"); }),
+        "Câu chuyện phải được duyệt mới hiện ra ngoài. Viết ở thẻ Câu chuyện của bé.");
+  h += nhom("Bé đã bật công khai mà chưa mốc nào hiện ra ngoài",
+        ck.filter(function(c){ return !mocCK[c.id]; }),
+        "Vào thẻ Hành trình, mở từng mốc rồi bật Hiện trên link công khai.");
+  h += nhom("Hồ sơ đang đồng hành mà chưa bật link công khai",
+        ca.filter(function(c){ return c.trang_thai === "dong-hanh" && !c.cong_khai; }),
+        "Bật ở cuối thẻ Thông tin bé. Chỉ bật khi gia đình đã đồng ý.");
+  h += nhom("Người giới thiệu chưa có ảnh hoặc lời giới thiệu",
+        cv.filter(function(n){ return !n.anh || !n.gioi_thieu; })
+          .map(function(n){ return { ten: n.ten }; }),
+        "Sửa ở thẻ Người giới thiệu. Trang của họ đang để chữ cái đầu thay ảnh.");
+
+  return h + '</div></section>';
+}
+
 function trangQuanTri(){
   var h='<section class="sec"><div class="sec-head"><h2>Người dùng</h2>'+
     '<span class="sub">'+(D.nguoi_dung||[]).length+' tài khoản</span></div><div class="card">'+
@@ -2476,9 +2538,18 @@ function trangQuanTri(){
   });
   h+='</tbody></table></div><div class="card-pad" style="border-top:1px solid var(--vien)">'+
     '<div class="eyebrow">Thêm người dùng</div>'+
-    '<p class="hint" style="margin-top:6px">Tạo tài khoản ở Supabase, mục Authentication rồi Users rồi Add user, bằng email của người đó. '+
-    'Sau đó quay lại đây gán nhóm quyền và bấm Mở. Mật khẩu do Supabase giữ, hệ thống này không nhìn thấy.</p>'+
-    '<div id="msgND" class="msg" style="margin-top:8px"></div></div></div></section>';
+    '<ol class="buoc">'+
+      '<li>Mở Supabase, mục <b>Authentication</b> rồi <b>Users</b> rồi <b>Add user</b>, nhập email của người đó. '+
+        'Tích <b>Auto Confirm User</b> để họ đăng nhập được ngay.</li>'+
+      '<li>Quay lại trang này, <b>tải lại</b>, tên người đó hiện trong bảng trên. Chọn nhóm quyền rồi bấm <b>Mở</b>.</li>'+
+      '<li>Gửi cho họ đường dẫn đăng nhập. Mật khẩu thì tự họ đổi, hệ thống này không nhìn thấy mật khẩu của ai.</li>'+
+    '</ol>'+
+    '<div class="hang-tai" style="margin-top:12px">'+
+      '<a class="btn btn-main btn-sm" href="https://supabase.com/dashboard/project/'+esc(maDuAn())+'/auth/users" target="_blank" rel="noopener">Mở trang tạo tài khoản</a>'+
+      '<button class="btn btn-sm" data-chep="'+esc(location.origin)+'/login">Chép đường dẫn đăng nhập</button>'+
+    '</div>'+
+    '<div id="msgND" class="msg" style="margin-top:8px"></div></div></div></section>'+
+    khoiConThieu();
 
   h+='<section class="sec"><div class="sec-head"><h2>Nhóm quyền</h2>'+
     '<span class="sub">tích vào ô nào thì nhóm đó làm được việc đó, tích xong là lưu ngay</span></div>'+
