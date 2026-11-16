@@ -776,7 +776,7 @@ async function veCay(SB){
   datTenDau("Những em nhỏ được đồng hành");
   var t = await Promise.all([
     SB.from("dot").select("*").order("thu_tu"),
-    SB.from("ca").select("id,ten,slug,dot,dia_ban,de_xuat_boi,gia_dinh,gioi_tinh,cong_khai").eq("cong_khai", true).order("id")
+    SB.from("ca").select("id,ten,slug,dot,dia_ban,tuoi,de_xuat_boi,gia_dinh,gioi_tinh,cong_khai").eq("cong_khai", true).order("id")
   ]);
   var dot = t[0].data || [], ca = t[1].data || [];
   if (!ca.length) { khongThay("Chưa có em nhỏ nào được công bố", "Chương trình chưa công bố trường hợp nào."); return; }
