@@ -1002,6 +1002,18 @@ async function napTatCa(){
      lieu_trinh:D.lieu_trinh||[], truyen_thong:D.truyen_thong||[]};
 }
 
+/* napTatCa chạy trong moApp lúc chưa biết QUYEN, nên hai bảng chặn theo quyền ở đó
+   trả về rỗng - thẻ "Đơn đăng ký mới" vì vậy luôn hiện 0 ngay sau khi đăng nhập.
+   Biết quyền rồi thì nạp riêng đúng hai bảng đó, chứ nạp lại cả bộ thì tốn bảy lượt gọi. */
+async function napTheoQuyen(){
+  if(CHE_DO!=="that")return;
+  var t=await Promise.all([
+    QUYEN.duyet_dang_ky?SB.from("dang_ky").select("*").order("tao_luc",{ascending:false}).limit(300):Promise.resolve({data:[]}),
+    QUYEN.quan_tri?SB.from("nguoi_dung").select("*").order("ho_ten"):Promise.resolve({data:[]})
+  ]);
+  D.dang_ky=t[0].data||[]; D.nguoi_dung=t[1].data||[];
+}
+
 /* Chi tiết một ca chỉ tải khi mở ca đó, để số ca tăng bao nhiêu cũng không nặng */
 var daTai={};
 async function napChiTiet(id, batBuoc){
@@ -1265,6 +1277,7 @@ async function moApp(){
   var nh=(D.nhom_quyen||[]).find(function(n){return n.ma===TOI.nhom;});
   QUYEN=(nh&&nh.quyen)||{};
   if(CHE_DO==="mau")QUYEN={xem_ca:true,sua_chuyen_mon:true,sua_truyen_thong:true,xoa:true,xem_nhay_cam:true,duyet_dang_ky:true,cong_khai:true,quan_tri:true};
+  await napTheoQuyen();
   document.getElementById("whoTxt").textContent=(TOI.ho_ten||TOI.email)+" · "+((nh&&nh.ten)||"Xem thử");
   gate.hidden=true;app.hidden=false;
   tuHash();ve();
