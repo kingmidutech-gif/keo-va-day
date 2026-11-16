@@ -1734,6 +1734,8 @@ function kpi(n,l,f,cls,act){
 /* ===================== đơn đăng ký ===================== */
 function trangDangKy(){
   var ds=(D.dang_ky||[]).filter(function(x){return locDK==="all"||x.trang_thai===locDK;});
+  /* O chon dot mac dinh lay dot moi nhat theo thu_tu. Truoc day ghi cung "DL", nen moi lan mo dot moi la de duyet lac don sang dot cu. */
+  var dotMoi=((D.dot||[]).slice().sort(function(a,b){return (b.thu_tu||0)-(a.thu_tu||0);})[0]||{}).ma;
   var dem=function(tt){return (D.dang_ky||[]).filter(function(x){return x.trang_thai===tt;}).length;};
   var h='<section class="sec"><div class="sec-head"><h2>Đơn đăng ký</h2>'+
     '<span class="sub">gửi tự động từ form trên trang giới thiệu</span></div>'+
@@ -1752,7 +1754,7 @@ function trangDangKy(){
       (dk.ca_id?'<div class="dk-hc">Đã chuyển thành hồ sơ <button class="btn btn-sm" data-ca="'+esc(dk.ca_id)+'">'+esc(dk.ca_id)+'</button></div>':'')+
       (xong?'':'<div class="dk-acts">'+
         '<select data-dot-dk="'+dk.id+'" style="border:1.5px solid var(--vien);border-radius:var(--r-pill);padding:6px 12px;background:var(--cam-nhat)">'+
-        (D.dot||[]).map(function(d){return '<option value="'+esc(d.ma)+'"'+(d.ma==="DL"?" selected":"")+'>'+esc(d.ten)+'</option>';}).join("")+'</select>'+
+        (D.dot||[]).map(function(d){return '<option value="'+esc(d.ma)+'"'+(d.ma===dotMoi?" selected":"")+'>'+esc(d.ten)+'</option>';}).join("")+'</select>'+
         '<button class="btn btn-ok btn-sm" data-duyet="'+dk.id+'">Duyệt thành hồ sơ ca</button>'+
         '<button class="btn btn-sm" data-daxem="'+dk.id+'">Đánh dấu đã xem</button>'+
         '<button class="btn btn-bad btn-sm" data-tuchoi="'+dk.id+'">Từ chối</button></div>')+'</div>';
