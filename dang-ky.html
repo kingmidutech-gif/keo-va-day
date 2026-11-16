@@ -522,6 +522,7 @@ img,svg,video,table,pre,iframe{max-width:100%}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
 <script>
 /* Link /exec của Apps Script nhận hồ sơ, nhận ngày 02/10/2026.
    Mỗi lần sửa code bên Apps Script phải triển khai phiên bản mới,
@@ -711,6 +712,78 @@ var API = "https://script.google.com/macros/s/AKfycbw1Xw9mFGhyQ5y6r8KHes2bi3Aunt
     return false;
   }
 
+  /* ---- Sao đơn sang hệ thống hồ sơ ----------------------------------------
+     Google Sheet vẫn là bản gốc. Đoạn này chỉ gửi thêm một bản rút gọn sang
+     database, để đơn tự hiện ở thẻ "Đơn đăng ký" trong trang quản lý thay vì
+     phải nhập tay. Khoá công khai nằm lộ trong mã trang, nên ghi qua hàm
+     gui_dang_ky chạy phía máy chủ: hàm tự bắt buộc có tên bé và số điện thoại,
+     bỏ qua đơn trùng tên và số trong 24 giờ, và chặn quá 30 đơn mỗi giờ.
+     Số căn cước, ảnh căn cước và ảnh sổ hộ nghèo KHÔNG đi vào đây - chúng ở
+     lại Google Sheet và Drive. ---------------------------------------------- */
+  var KHO_URL  = "https://fwhaxdmnhcugwieurjuw.supabase.co";
+  var KHO_KHOA = "sb_publishable_BdeFqL9ifXDmOWqWufoTkw__oWKtDQE";
+
+  function tienVn(s){
+    var n = Number(soThoi(s));
+    if (!n) return (s || "").trim();
+    return n.toLocaleString("vi-VN") + " đồng";
+  }
+
+  /* Trong hệ thống số thập phân viết dấu phẩy, nên 16.5 phải thành 16,5. */
+  function soVn(s){ return String(s == null ? "" : s).trim().replace(".", ","); }
+
+  /* Bỏ dấu chấm cuối rồi mới nối thêm một dấu, không thì gặp đoạn người ta
+     đã tự chấm câu là ra hai dấu chấm liền nhau. */
+  function cau(s){
+    var t = String(s == null ? "" : s).trim().replace(/[.\s]+$/, "");
+    return t ? t + ". " : "";
+  }
+
+  /* Hàm gui_dang_ky chỉ nhận tám ô chữ, không nhận cả bảng. Nhưng những số
+     sàng lọc - cao, nặng, thu nhập, diện hộ nghèo - phải thấy ngay lúc duyệt
+     đơn, nên gom hết vào một đoạn hoàn cảnh đọc được. */
+  function gonHoanCanh(d){
+    var t = "";
+    t += cau("Cao " + soVn(d.b7) + " cm, nặng " + soVn(d.b8) + " kg"
+             + (d.b3 ? " · " + d.b3 : ""));
+    t += cau(d.c8);
+    t += cau("Người nuôi dưỡng: " + d.c1 + (d.c6 ? ", điện thoại " + d.c6 : ""));
+    t += cau("Nghề " + d.c9 + ", thu nhập " + tienVn(d.c10) + " mỗi tháng ("
+             + d.c11 + "), " + d.c12 + " nhân khẩu");
+    t += cau("Diện: " + d.e1);
+    t += cau("Nhà ở: " + d.e5);
+    t += cau("Đơn thân hoặc không nơi nương tựa: " + d.e3);
+    t += cau("Đang nhận trợ cấp: " + d.e4);
+    t += cau("Bệnh tật trong gia đình: " + (d.e2 || "không ghi"));
+    t = t.trim();
+    return t.length > 1500 ? t.slice(0, 1497) + "..." : t;
+  }
+
+  function guiSangHeThong(d){
+    /* Sheet đã nhận đơn rồi. Bước này hỏng thì người gửi không được thấy gì,
+       chỉ để lại một dòng trong console cho mình đối chiếu. */
+    try {
+      if (!window.supabase || !window.supabase.createClient) return;
+      window.supabase.createClient(KHO_URL, KHO_KHOA).rpc("gui_dang_ky", {
+        p_ho_ten_tre: d.b1,
+        p_ngay_sinh:  d.b2,
+        p_dia_chi:    d.c7,
+        p_nguoi_gui:  d.a1,
+        p_quan_he:    "Chuyên viên, chuyên gia chiều cao",
+        p_dien_thoai: d.a5,
+        p_email:      "",
+        p_hoan_canh:  gonHoanCanh(d),
+        p_bay:        ""
+      }).then(function(r){
+        if (r.error) console.warn("Chua sao don sang he thong:", r.error.message);
+      }, function(e){
+        console.warn("Chua sao don sang he thong:", e && e.message);
+      });
+    } catch (e) {
+      console.warn("Chua sao don sang he thong:", e && e.message);
+    }
+  }
+
   form.addEventListener("submit", function(e){
     e.preventDefault();
     xoaLoi();
@@ -785,6 +858,7 @@ var API = "https://script.google.com/macros/s/AKfycbw1Xw9mFGhyQ5y6r8KHes2bi3Aunt
       .then(function(kq){
         clearTimeout(hetGio);
         if (kq && kq.ok){
+          guiSangHeThong(d);
           form.hidden = true;
           oXong.hidden = false;
           window.scrollTo({ top:0, behavior:"smooth" });
